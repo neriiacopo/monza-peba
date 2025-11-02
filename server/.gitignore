@@ -1,0 +1,5 @@
+log.txt
+/sql
+/env
+.env
+__pycache__
