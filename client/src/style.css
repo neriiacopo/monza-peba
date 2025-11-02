@@ -1,0 +1,79 @@
+html {
+    position: fixed;
+    width: 100%;
+    height: 90dvh;
+}
+
+:root {
+    --real-vh: 100dvh;
+}
+
+body,
+#root {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: clip;
+    /* font-family: Work Sans, sans-serif; */
+}
+
+/* Attribution on the right side vertical */
+.leaflet-control-attribution {
+    right: 16px !important;
+    bottom: 16px !important;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg) !important;
+    white-space: nowrap;
+    font-size: 0.8em;
+    padding: 10px 5px !important;
+    border-radius: 100px;
+    font-family: "Work Sans";
+    border: 1px solid black;
+    display: none !important;
+}
+
+/* Attribution center in the bottom */
+/* .leaflet-control-attribution {
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+} */
+
+.leaflet-tooltip {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5));
+    opacity: 1 !important;
+}
+
+/* .leaflet-basemap-pane img {
+    mix-blend-mode: exclusion !important;
+    filter: brightness(0.2);
+} */
+
+.leaflet-tile-container img {
+    mix-blend-mode: lighten !important;
+    /* filter: brightness(0.1); */
+}
+
+/* Transparent scrollbar background */
+::-webkit-scrollbar {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(128, 128, 128, 0.4);
+    border-radius: 8px;
+}
+
+::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+/* Firefox */
+* {
+    scrollbar-color: rgba(128, 128, 128, 0.4) transparent;
+    scrollbar-width: thin;
+}
