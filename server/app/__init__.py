@@ -16,8 +16,20 @@ def create_app() -> Flask:
     app = Flask(__name__)
     app.config.from_object(Config)
 
-    # Enable CORS for all routes and origins
-    CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
+    # Configure CORS from environment/config.
+    # Note: Browsers will reject Access-Control-Allow-Origin: '*' when Access-Control-Allow-Credentials is true.
+    # To allow credentials, set a specific origin list via the CORS_ORIGINS env var (comma-separated),
+    # or let Flask-CORS reflect the request origin by configuring specific origins.
+    cors_origins = app.config.get("CORS_ORIGINS", "*")
+    cors_supports_credentials = app.config.get("CORS_SUPPORTS_CREDENTIALS", False)
+
+    # If user provided a comma-separated list in env, convert to list
+    if isinstance(cors_origins, str) and "," in cors_origins:
+        origins = [o.strip() for o in cors_origins.split(",") if o.strip()]
+    else:
+        origins = cors_origins
+
+    CORS(app, resources={r"/*": {"origins": origins}}, supports_credentials=cors_supports_credentials)
 
     init_extensions(app)
 
@@ -28,12 +40,9 @@ def create_app() -> Flask:
 
     register_error_handlers(app)
 
-    # Add CORS headers to every response (handles OPTIONS preflight)
-    @app.after_request
-    def add_cors_headers(response):
-        response.headers["Access-Control-Allow-Origin"] = "*"
-        response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
-        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
-        return response
+    # NOTE: do not manually override CORS response headers here. Flask-CORS manages
+    # the correct headers and handles preflight OPTIONS requests. Overriding headers
+    # (for example setting Access-Control-Allow-Origin to '*') can conflict with
+    # credentialed requests and lead to CORS failures in browsers.
 
     return app
