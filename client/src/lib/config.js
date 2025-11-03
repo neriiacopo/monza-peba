@@ -7,7 +7,7 @@ const home = "http://192.168.5.37:8000";
 const mobile = "http://10.117.225.73:8000";
 
 const u = "http://192.168.5.37:8000";
-const url = "https://peba-app-pgnpf.ondigitalocean.app";
+const url = "https://peba-app-95m3h.ondigitalocean.app";
 const d = "http://10.117.225.73:8000";
 
-export const API_BASE = import.meta.env.VITE_API_BASE || d;
+export const API_BASE = import.meta.env.VITE_API_BASE || url;
