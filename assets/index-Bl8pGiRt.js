@@ -16085,7 +16085,7 @@ function GE() {
 }
 const qE = X2.createRoot(document.querySelector("#root"));
 function YE() {
-  const [n2, r] = M.useState(0), a = { addresses: { file: "/COMUNE_MONZA_Numerazione_Civica_Comunale.geojson" } };
+  const [n2, r] = M.useState(0), a = { addresses: { file: "./COMUNE_MONZA_Numerazione_Civica_Comunale.geojson" } };
   return M.useEffect(() => {
     Object.entries(a).forEach(([u, { file: f }]) => {
       fetch(f).then((h) => h.json()).then((h) => {
