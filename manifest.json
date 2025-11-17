@@ -2,9 +2,9 @@
     "name": "Tracce App",
     "short_name": "Tracce",
     "start_url": "/",
-    "display": "fullscreen",
-    "background_color": "#ffffff",
-    "theme_color": "#ffffff",
+    "display": "standalone",
+    "background_color": "#f5f5f5",
+    "theme_color": "#f5f5f5",
     "icons": [
         {
             "src": "/favicon.png",
