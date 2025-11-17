@@ -5,30 +5,54 @@ const root = ReactDOM.createRoot(document.querySelector("#root"));
 import { ThemeProvider } from "@mui/material/styles";
 import theme from "./ui/theme.js";
 
+import { useEffect, useState } from "react";
+
+import { CircularProgress } from "@mui/material";
 import App from "./App.jsx";
 
-// init();
+import { useStore } from "./store/useStore.jsx";
 
-root.render(
-    <>
-        {/* <ThemeProvider theme={theme}>
-            <App />
-        </ThemeProvider> */}
+function Root() {
+    const [loaded, setLoaded] = useState(0);
 
-        <App />
-    </>
-);
+    const jsons = {
+        addresses: {
+            file: "./COMUNE_MONZA_Numerazione_Civica_Comunale.geojson",
+        },
+    };
 
-// async function init() {
-//     try {
-//         const response = await fetch("http://localhost:8000/bbox");
-//         if (!response.ok) {
-//             throw new Error(`Failed to fetch data: ${response.statusText}`);
-//         }
-//         const bbox = await response.json();
+    useEffect(() => {
+        Object.entries(jsons).forEach(([key, { file }]) => {
+            fetch(file)
+                .then((res) => res.json())
+                .then((data) => {
+                    console.log(data);
+                    useStore.setState({ [key]: data.features });
+                })
+                .catch(console.error)
+                .finally(() => {
+                    setLoaded((loaded) => loaded + 1);
+                });
+        });
+    }, []);
 
-//         console.log("Fetched bbox:", bbox);
-//     } catch (error) {
-//         console.error("Error loading data:", error);
-//     }
-// }
+    if (loaded < Object.keys(jsons).length) {
+        return (
+            <div
+                style={{
+                    width: "100%",
+                    height: "100%",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                }}
+            >
+                <CircularProgress />
+            </div>
+        );
+    }
+
+    return <App />;
+}
+
+root.render(<Root />);

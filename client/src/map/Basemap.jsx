@@ -1,7 +1,8 @@
 import { useStore } from "@/store/useStore.jsx";
 
 import { getRoute } from "@/lib/api";
-
+import getTheme from "@/ui/theme.js";
+import * as L from "leaflet";
 import "leaflet/dist/leaflet.css";
 // Import Marker and useMapEvents
 import {
@@ -16,40 +17,60 @@ import { useEffect, useRef, useState } from "react";
 
 import AddOriginDestination from "./AddOriginDestination";
 import NetworkInspector from "./NetworkInspector";
+import Route from "./Route";
 
-export default function Basemap() {
-    const mainColor = useStore((state) => state.mainColor);
+export default function Basemap({ mainColor }) {
+    // const theme = getTheme();
+    // const mainColor = theme.palette.primary.main;
     const mapRef = useRef();
-    const pathRef = useRef();
-    const bbox = useStore((state) => state.bbox);
-    const [route, setRoute] = useState(null);
+    const routeRef = useRef();
+    const overlayRef = useRef();
+    const markers = useStore((state) => state.markers);
+    const route = useStore((state) => state.route);
 
-    async function calcRoute(origin, destination) {
-        console.log("running route");
-        try {
-            const data = await getRoute({ origin, destination });
-            setRoute(data);
-            // useStore.setState({ route: data.route });
-        } catch (err) {
-            console.error("Error fetching route:", err);
-        }
-    }
+    const bbox = useStore((state) => state.bbox);
 
     useEffect(() => {
-        if (route && pathRef.current) {
-            pathRef.current.clearLayers();
-            pathRef.current.addData(route);
-            if (mapRef.current) {
-                const bounds = pathRef.current.getBounds();
-                const paddedBounds = bounds.pad(0.1);
-                mapRef.current.fitBounds(paddedBounds);
-            }
+        const map = mapRef.current;
+        if (!map) return;
+
+        const bounds = L.latLngBounds([]);
+
+        if (route && routeRef.current) {
+            try {
+                const routeBounds = routeRef.current.getBounds();
+                if (routeBounds.isValid()) bounds.extend(routeBounds);
+            } catch (_) {}
         }
-    }, [route]);
+
+        if (markers?.origin) bounds.extend(markers.origin);
+        if (markers?.destination) bounds.extend(markers.destination);
+
+        if (bounds.isValid()) {
+            map.fitBounds(bounds.pad(0.15), { animate: true });
+        }
+    }, [route, markers]);
+
+    useEffect(() => {
+        if (overlayRef.current) {
+            overlayRef.current.setStyle({
+                fillColor: mainColor,
+            });
+        }
+    }, [mainColor]);
 
     return (
-        <div style={{ height: "100%", width: "100%" }}>
+        <div
+            style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                height: "100%",
+                width: "100%",
+            }}
+        >
             <MapContainer
+                zoomSnap={0.1}
                 zoom={10}
                 bounds={bbox}
                 zoomControl={false}
@@ -84,6 +105,7 @@ export default function Basemap() {
                     }}
                 >
                     <Rectangle
+                        key={overlayRef}
                         bounds={[
                             [-90, -180],
                             [90, 180],
@@ -115,9 +137,10 @@ export default function Basemap() {
                         name="route"
                         style={{ zIndex: 500 }}
                     >
-                        <GeoJSON
-                            ref={pathRef}
-                            style={{ color: mainColor, weight: 5 }}
+                        <Route
+                            ref={routeRef}
+                            routeData={route}
+                            mainColor={mainColor}
                         />
                     </Pane>
                 )}
@@ -125,12 +148,9 @@ export default function Basemap() {
                     name="markers"
                     style={{ zIndex: 600 }}
                 >
-                    <AddOriginDestination
-                        mapRef={mapRef}
-                        calcRoute={calcRoute}
-                    />
+                    <AddOriginDestination mapRef={mapRef} />
                 </Pane>
-                <Pane
+                {/* <Pane
                     name="network"
                     style={{ zIndex: 400 }}
                 >
@@ -138,7 +158,7 @@ export default function Basemap() {
                         mapRef={mapRef}
                         // calcRoute={calcRoute}
                     />
-                </Pane>
+                </Pane> */}
             </MapContainer>
         </div>
     );

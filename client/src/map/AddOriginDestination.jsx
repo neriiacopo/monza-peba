@@ -10,9 +10,11 @@ import {
 
 import { use, useEffect, useRef, useState } from "react";
 
-export default function AddOriginDestination({ calcRoute }) {
+export default function AddOriginDestination() {
     const mainColor = useStore((state) => state.mainColor);
-    const [markers, setMarkers] = useState([]);
+    const calcRoute = useStore((state) => state.calcRoute);
+
+    const { markers } = useStore();
 
     useEffect(() => {
         if (markers.length < 2) {
@@ -20,12 +22,12 @@ export default function AddOriginDestination({ calcRoute }) {
         }
         if (markers.length === 2) {
             const origin = {
-                lat: markers[0].position[0],
-                lon: markers[0].position[1],
+                lat: markers[0].coordinates[0],
+                lon: markers[0].coordinates[1],
             };
             const destination = {
-                lat: markers[1].position[0],
-                lon: markers[1].position[1],
+                lat: markers[1].coordinates[0],
+                lon: markers[1].coordinates[1],
             };
 
             calcRoute(origin, destination);
@@ -34,36 +36,33 @@ export default function AddOriginDestination({ calcRoute }) {
 
     return (
         <>
-            <MapClickHandler setMarkers={setMarkers} />
+            <MapClickHandler />
 
-            {markers.map((marker, index) => (
-                <CircleMarker
-                    key={marker.key}
-                    center={[marker.position[0], marker.position[1]]}
-                    radius={10}
-                    color={mainColor || "black"}
-                    fillColor={index == 0 ? mainColor : "white"}
-                    fillOpacity={1}
-                    style={{ boxShadow: "0 0 5px rgba(0,0,0,1)" }}
-                />
-            ))}
+            {markers.length != 0 &&
+                markers.map((marker, index) => (
+                    <CircleMarker
+                        key={marker.key}
+                        center={[marker.coordinates[0], marker.coordinates[1]]}
+                        radius={7}
+                        // color={mainColor || "black"}
+                        // fillColor={index == 0 ? mainColor : "white"}
+                        color={mainColor}
+                        fillColor={"white"}
+                        fillOpacity={1}
+                        style={{ boxShadow: "0 0 5px rgba(0,0,0,1)" }}
+                    />
+                ))}
         </>
     );
 }
 
-function MapClickHandler({ setMarkers }) {
+function MapClickHandler() {
+    const { setMarkers } = useStore();
+
     useMapEvents({
         click(e) {
             const { lat, lng } = e.latlng;
-
-            setMarkers((prevMarkers) =>
-                prevMarkers.length < 2
-                    ? [
-                          ...prevMarkers,
-                          { position: [lat, lng], key: Date.now() },
-                      ]
-                    : [{ position: [lat, lng], key: Date.now() }]
-            );
+            setMarkers({ coordinates: [lat, lng], key: Date.now() });
         },
     });
 

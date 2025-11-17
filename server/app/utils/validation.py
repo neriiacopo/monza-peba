@@ -7,6 +7,8 @@ class LatLon(BaseModel):
 class RouteRequest(BaseModel):
     origin: LatLon
     destination: LatLon
+    params: dict | None = None
+    
 
 def parse_route_request(payload: dict) -> RouteRequest:
     try:

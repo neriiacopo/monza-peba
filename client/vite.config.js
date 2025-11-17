@@ -9,20 +9,20 @@ const isCloudflare = process.env.CLOUDFLARE_PAGES === "true";
 
 export default {
     plugins: [react(), topLevelAwait()],
-    root: "src",
+    root: ".",
     resolve: {
         alias: {
             "@": path.resolve(__dirname, "./src"),
         },
     },
     publicDir: "public",
-    base: isCloudflare ? "/" : "/monza-peba/",
+    base: "/",
     server: {
         host: true,
         open: !isCodeSandbox,
     },
     build: {
-        outDir: "../dist",
+        outDir: "./dist",
         emptyOutDir: true,
         sourcemap: true,
     },

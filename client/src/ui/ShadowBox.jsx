@@ -12,7 +12,6 @@ export default function ShadowBox({
     return (
         <Box
             {...props}
-            on
             sx={{
                 width: "100%",
                 borderRadius: theme.brdRad,
@@ -23,8 +22,14 @@ export default function ShadowBox({
                 transition: shadowS.transition,
                 color: theme.palette.primary.main,
 
+                backgroundColor: outlined
+                    ? theme.palette.secondary.main
+                    : "transparent",
+
                 ...props.sx,
             }}
-        />
+        >
+            {props.children}
+        </Box>
     );
 }
