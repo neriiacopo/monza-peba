@@ -3,30 +3,37 @@
     <head>
         <meta charset="UTF-8" />
         <meta
-            http-equiv="X-UA-Compatible"
-            content="IE=edge"
-        />
-        <meta
             name="viewport"
             content="width=device-width, initial-scale=1"
         />
         <title>Tracce app</title>
-        <link
-            rel="icon"
-            type="image/x-icon"
-            href="/"
+        <meta
+            name="theme-color"
+            content="rgba(0,0,0,0)"
         />
 
-        <!-- mobile debuggind -->
+        <link
+            rel="manifest"
+            href="/manifest.json"
+        />
+
+        <link
+            rel="icon"
+            href="/favicon.ico"
+        />
+
+        <!-- mobile debugging (optional) -->
         <!-- <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
         <script>
             eruda.init();
         </script> -->
 
+        <!-- Google Font -->
         <style>
             @import url("https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap");
         </style>
     </head>
+
     <body style="margin: 0; padding: 0">
         <div id="root"></div>
 

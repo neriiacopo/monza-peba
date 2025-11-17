@@ -7,10 +7,10 @@ export let useStore = create((set, get) => ({
     prevSession: null,
     selectedProfile: null,
     selectedProfileId: 0,
-    mainColor: "#000000",
+    // mainColor: "#000000",
 
     bbox: null,
-    page: "profiles",
+    page: "landing",
 
     markers: [],
 

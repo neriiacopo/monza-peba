@@ -73,3 +73,7 @@ export const profileList = Object.entries(profiles).map(([key, data]) => ({
     id: key,
     ...data,
 }));
+
+export const getColors = () => {
+    return Object.entries(profiles).map(([key, data]) => data.color);
+};

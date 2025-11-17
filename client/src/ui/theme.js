@@ -42,8 +42,8 @@ const iconH = `${gridU.h - gridSpacing}px`;
 const brdRad = `${(gridU.h - gridSpacing) / 2}px`;
 const offRad = `${(gridU.h - gridSpacing) / 4}px`;
 
-export default function getTheme(main = "#000000") {
-    // const main = colors[profile] || "#000000";
+export default function getTheme(main = "#202124") {
+    // const main = colors[profile] || "#1a1a1a";
     const secondary = "#ffffff";
 
     // const rndX = ((Math.random() - 0.5) * 2) % 1;
@@ -89,8 +89,11 @@ export default function getTheme(main = "#000000") {
                         border: `2px solid ${main}`,
                         boxShadow: `0 2px 6px ${main}55`,
                         color: main,
+                        "&:focus": {
+                            backgroundColor: darken(main, 0.15),
+                        },
                         "&:hover": {
-                            backgroundColor: `${main}10`,
+                            backgroundColor: darken(main, 0.15),
                         },
                     },
                 },
