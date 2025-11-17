@@ -16,16 +16,6 @@ export default function ProfileSelectionPage({ theme }) {
     return (
         <>
             {/* Title */}
-            {/* <Spacer
-                sx={{
-                    display: "flex",
-                    justifyContent: "center",
-                }}
-            >
-                {profile && (
-                    <Typography variant="h5">{profile.label || ""}</Typography>
-                )}
-            </Spacer> */}
             <Spacer
                 sx={{
                     display: "flex",
@@ -33,8 +23,7 @@ export default function ProfileSelectionPage({ theme }) {
                 }}
             >
                 <ShadowBox
-                    focus={false}
-                    outlined={false}
+                    focus={true}
                     sx={{
                         display: "flex",
                         justifyContent: "center",
@@ -43,13 +32,7 @@ export default function ProfileSelectionPage({ theme }) {
                         height: `${theme.grid.units.h}px`,
                     }}
                 >
-                    {profile && (
-                        <Chip
-                            label={
-                                <Typography>{profile.label || ""}</Typography>
-                            }
-                        />
-                    )}
+                    <Typography as="h1">Pedone</Typography>
                 </ShadowBox>
             </Spacer>
 
@@ -62,26 +45,6 @@ export default function ProfileSelectionPage({ theme }) {
             >
                 <ProfilesCarousel />
             </Box>
-            {/* <Spacer
-                sx={{
-                    display: "flex",
-                    justifyContent: "center",
-                }}
-            >
-                <ShadowBox
-                    focus={false}
-                    outlined={false}
-                    sx={{
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        width: "75%",
-                        height: `${theme.grid.units.h}px`,
-                    }}
-                >
-                    <Typography variant="h5">{profile.label}</Typography>
-                </ShadowBox>
-            </Spacer> */}
 
             {/* Stats parameters */}
             <ShadowBox

@@ -1,10 +1,29 @@
 // Route.jsx
-import { useEffect } from "react";
-import { LayerGroup, GeoJSON, useMap } from "react-leaflet";
+import { useEffect, useState } from "react";
+import { LayerGroup, GeoJSON, useMap, Pane } from "react-leaflet";
+
+import Alerts from "@/map/Alerts.jsx";
 import * as L from "leaflet";
 
-export default function Route({ routeData, mainColor }) {
+import { useStore } from "@/store/useStore.jsx";
+
+export default function Route({ mainColor }) {
     const map = useMap();
+    const [baseLine, setBaseLine] = useState(null);
+    const routeData = useStore((s) => s.route);
+
+    useEffect(() => {
+        if (!routeData || !routeData.features) {
+            setBaseLine(null);
+            return;
+        }
+        const baselineFeature =
+            routeData.features.find(
+                (f) => f?.properties?.profile === "baseline"
+            ) || null;
+
+        setBaseLine(baselineFeature.segments);
+    }, [routeData]);
 
     useEffect(() => {
         if (!map || !routeData) return;
@@ -37,6 +56,15 @@ export default function Route({ routeData, mainColor }) {
                     }}
                 />
             ))}
+            <Pane
+                name="alerts"
+                style={{ zIndex: 650 }}
+            >
+                <Alerts
+                    data={baseLine}
+                    mainColor={mainColor}
+                />
+            </Pane>
         </LayerGroup>
     );
 }

@@ -4,7 +4,7 @@ import { useTheme } from "@mui/material/styles";
 
 import { useStore } from "@/store/useStore.jsx";
 
-import LogoIcon from "@mui/icons-material/Foundation";
+import LogoIcon from "@mui/icons-material/Home";
 import MapIcon from "@mui/icons-material/Map";
 import SettingsIcon from "@mui/icons-material/Settings";
 
@@ -12,7 +12,10 @@ export default function Banner({ page }) {
     const theme = useTheme();
 
     const btns = [
-        { icon: LogoIcon, action: () => console.log("Logo clicked") },
+        {
+            icon: LogoIcon,
+            action: () => useStore.setState({ page: "landing" }),
+        },
         {
             icon: SettingsIcon,
             action: () => useStore.setState({ page: "profiles" }),
