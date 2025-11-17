@@ -12522,7 +12522,7 @@ function lF(n2, a = oF) {
 const d1 = (n2) => {
   const a = aF(n2), o = (u) => lF(a, u);
   return Object.assign(o, a), o;
-}, sF = (n2) => n2 ? d1(n2) : d1, uF = "http://192.168.1.154:8000", h1 = uF, cF = { "Content-Type": "application/json" };
+}, sF = (n2) => n2 ? d1(n2) : d1, uF = "https://peba-app-95m3h.ondigitalocean.app", h1 = uF, cF = { "Content-Type": "application/json" };
 async function p1(n2, { method: a = "GET", headers: o = {}, body: u, signal: d } = {}) {
   console.log("inside api", h1, n2);
   const v = await fetch(`${h1}${n2}`, { method: a, headers: { ...cF, ...o }, body: u ? JSON.stringify(u) : void 0, signal: d, credentials: "omit" });
