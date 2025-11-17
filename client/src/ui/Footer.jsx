@@ -49,7 +49,7 @@ export default function Footer() {
                     sx={{
                         width: "60%",
                         height: "60%",
-                        color: theme.palette.primary.secondary,
+                        color: theme.palette.secondary.main,
                     }}
                 />
             </IconButton>

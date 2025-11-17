@@ -1,40 +1,60 @@
 import { create } from "zustand";
 
+import { profiles, profileList } from "@/lib/profiles.config.js";
+import { getRoute } from "@/lib/api.js";
+
 export let useStore = create((set, get) => ({
     prevSession: null,
-    mainColor: "#FF4D4E",
-    profile: "pedone",
+    selectedProfile: null,
+    selectedProfileId: 0,
+    mainColor: "#000000",
+
     bbox: null,
-    page: null,
+    page: "profiles",
 
-    profiles: {
-        wheelchair: "Sedia a rotelle",
-        normo: "Pedone",
-        visuallyImpaired: "Ipovedente",
-        elderly: "Anziano",
-        parent: "Genitore",
+    markers: [],
+
+    setNextColor: () => {
+        const colors = get().colors;
+        const profile = get().profile;
+
+        const colorKeys = Object.keys(colors);
+        const currentIndex = colorKeys.indexOf(profile);
+        const nextIndex = (currentIndex + 1) % colorKeys.length;
+        const nextProfile = colorKeys[nextIndex];
+        const nextColor = colors[nextProfile];
+        set({ profile: nextProfile, mainColor: nextColor });
     },
 
-    colors: {
-        wheelchair: "#4FC3F7",
-        normo: "#fad02c",
-        visuallyImpaired: "#F06292",
-        elderly: "#66BB6A",
-        parent: "#f59e0b",
+    setMarkers: (newMarker) => {
+        const prevMarkers = get().markers;
+
+        set({
+            markers:
+                prevMarkers.length < 2
+                    ? [...prevMarkers, newMarker]
+                    : [newMarker],
+        });
     },
 
-    // geodb: [],
-    // landing: true,
-    // visibleDots: false,
-    // methodology: false,
+    setProfile: (index) =>
+        set(() => ({
+            selectedProfile: profileList[index],
+            selectedProfileId: index,
+            mainColor: profileList[index].color,
+        })),
 
-    // resetClick: (obj) => {
-    //     const geodb = get().geodb;
+    calcRoute: async (origin, destination) => {
+        const { markers, selectedProfile } = get();
 
-    //     geodb.map((e) => {
-    //         if (e.id == obj?.id) e.clicked = true;
-    //         else e.clicked = false;
-    //     });
-    //     set({ geodb });
-    // },
+        if (markers.length < 2) return null;
+
+        const route = await getRoute({
+            origin,
+            destination,
+            params: selectedProfile.params,
+        });
+
+        set({ route });
+    },
 }));

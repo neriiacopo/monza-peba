@@ -1,7 +1,7 @@
 {
-    "name": "peba-app-client",
+    "name": "tracce-app-client",
     "version": "1.0.0",
-    "description": "client for Monza peba web-app",
+    "description": "client for the Tracce web-app",
     "type": "module",
     "homepage": "/",
     "scripts": {

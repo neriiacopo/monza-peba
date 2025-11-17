@@ -36,8 +36,8 @@ export const api = {
 };
 
 //////////////////////////
-export function getRoute({ origin, destination }) {
-    return api.post("/route", { origin, destination });
+export function getRoute({ origin, destination, params }) {
+    return api.post("/route", { origin, destination, params });
 }
 
 export function getBbox({}) {

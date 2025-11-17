@@ -1,7 +1,57 @@
 import json
 from flask import current_app
 from ..errors import NotFound
-from ..utils.queries import DIJKSTRA_SQL_SIMPLE_DETAILS, DIJKSTRA_SQL_WEIGHTED_DETAILS, SNAP_SQL_TMPL
+
+SNAP_SQL_TMPL = """
+SELECT id
+FROM {vertices}
+ORDER BY the_geom <-> ST_SetSRID(ST_Point(%s, %s), 4326)
+LIMIT 1;
+"""
+
+DIJKSTRA_SQL_SIMPLE = """
+WITH route AS (
+  SELECT * FROM pgr_dijkstra(
+    'SELECT gid as id, source, target, length AS cost FROM {edges}',
+    %s, %s, directed := false
+  )
+),
+geom_path AS (
+  SELECT ST_LineMerge(ST_Union(w.geom)) AS geom,
+         SUM(w.length) AS total_length, 
+         SUM(r.cost) AS total_cost
+  FROM route r
+  JOIN {edges} w ON r.edge = w.gid
+)
+SELECT ST_AsGeoJSON(geom), total_length, total_cost
+FROM geom_path;
+"""
+
+
+DIJKSTRA_SQL_WEIGHTED = """
+WITH route AS (
+  SELECT * FROM pgr_dijkstra(
+    'SELECT
+         gid AS id,
+         source,
+         target,
+         {cost_expr} AS cost
+     FROM {edges}
+     WHERE {where_clause}',
+    %s, %s, directed := false
+  )
+),
+geom_path AS (
+  SELECT
+      ST_LineMerge(ST_Union(w.geom)) AS geom,
+      SUM(w.length) AS total_length,
+      SUM(r.cost)   AS total_cost
+  FROM route r
+  JOIN {edges} w ON r.edge = w.gid
+)
+SELECT ST_AsGeoJSON(geom), total_length, total_cost
+FROM geom_path;
+"""
 
 
 def snap_vertex(cur, lon, lat, vertices_tbl):
@@ -13,36 +63,24 @@ def snap_vertex(cur, lon, lat, vertices_tbl):
 
 def shortest_path(cur, start_vid, end_vid, edges_tbl, algo, params=None):
     if algo == "weighted" and params is not None:
+        print("building where clause with params:", params)
         where_clause = build_where_clause(params)
         cost_expr = build_cost_expr(params)
-        sql = DIJKSTRA_SQL_WEIGHTED_DETAILS.format(
+        sql = DIJKSTRA_SQL_WEIGHTED.format(
             edges=edges_tbl,
             where_clause=where_clause,
             cost_expr=cost_expr,
         )
     else:
-        sql = DIJKSTRA_SQL_SIMPLE_DETAILS.format(edges=edges_tbl)
+      sql = DIJKSTRA_SQL_SIMPLE
 
-    cur.execute(sql, (start_vid, end_vid))
+    cur.execute(sql.format(edges=edges_tbl), (start_vid, end_vid))
     row = cur.fetchone()
-
-    if not row:
-        raise NotFound("No path found")
-
-    geometry = json.loads(row[0]) if row[0] else None
-    segments = row[1]
-    total_length = row[2]
-    total_cost = row[3]
-
-    return {
-        "geometry": geometry,     
-        "segments": segments,    
-        "total_length": total_length,
-        "total_cost": total_cost,
-    }
-
-
-
+    if not row or row[0] is None:
+        raise NotFound("No path found between snapped vertices.")
+    geojson = json.loads(row[0])
+    print("tot len", row[1], "tot cost", row[2])
+    return {"geometry": geojson, "total_length": row[1], "total_cost": row[2]}
 
 def route_between(cur, o_lon, o_lat, d_lon, d_lat, algo, params=None):
     cfg = current_app.config

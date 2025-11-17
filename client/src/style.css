@@ -77,3 +77,17 @@ body,
     scrollbar-color: rgba(128, 128, 128, 0.4) transparent;
     scrollbar-width: thin;
 }
+
+.ball .shadow {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(
+        circle at 50% 50%,
+        rgba(0, 0, 0, 0.4),
+        rgba(0, 0, 0, 0.1) 40%,
+        rgba(0, 0, 0, 0) 50%
+    );
+    transform: rotateX(90deg) translateZ(-150px);
+    /* z-index: -1; */
+}
