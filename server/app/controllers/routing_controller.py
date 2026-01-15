@@ -4,10 +4,12 @@ from ..services.pgrouting import route_between
 
 
 def build_feature(profile_name, res):
+    print("res", res)
     return {
         "type": "Feature",
         "geometry": res["geometry"],
         "segments": res["segments"],
+        "endpoints": res["endpoints"],
         "properties": {
             "profile": profile_name,
             "total_length": res["total_length"],

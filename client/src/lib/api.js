@@ -6,7 +6,6 @@ async function request(
     path,
     { method = "GET", headers = {}, body, signal } = {}
 ) {
-    console.log("inside api", API_BASE, path);
     const res = await fetch(`${API_BASE}${path}`, {
         method,
         headers: { ...DEFAULT_HEADERS, ...headers },
@@ -29,7 +28,7 @@ async function request(
     }
 }
 
-// // Example typed methods
+// basic template
 export const api = {
     get: (p, opts) => request(p, { ...opts, method: "GET" }),
     post: (p, body, opts) => request(p, { ...opts, method: "POST", body }),
@@ -37,7 +36,9 @@ export const api = {
 
 //////////////////////////
 export function getRoute({ origin, destination, params }) {
-    return api.post("/route", { origin, destination, params });
+    const res = api.post("/route", { origin, destination, params });
+
+    return res;
 }
 
 export function getBbox({}) {

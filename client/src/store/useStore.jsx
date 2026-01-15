@@ -2,15 +2,20 @@ import { create } from "zustand";
 
 import { profiles, profileList } from "@/lib/profiles.config.js";
 import { getRoute } from "@/lib/api.js";
+import { postprocessRoute } from "@/lib/data.utils";
 
 export let useStore = create((set, get) => ({
     prevSession: null,
     selectedProfile: null,
+    prevProfile: null,
     selectedProfileId: 0,
     // mainColor: "#000000",
+    stats: {},
+    alerts: {},
 
     bbox: null,
     page: "landing",
+    subpage: "desc",
 
     markers: [],
 
@@ -26,35 +31,107 @@ export let useStore = create((set, get) => ({
         set({ profile: nextProfile, mainColor: nextColor });
     },
 
-    setMarkers: (newMarker) => {
+    setMarkers: (newMarker, idx = get().markers.length >= 1 ? 1 : 0) => {
         const prevMarkers = get().markers;
+        const calcRoute = get().calcRoute;
 
-        set({
-            markers:
+        let newMarkers = [];
+
+        if (idx == null) {
+            newMarker.idx = prevMarkers.length < 2 ? 1 : 0;
+            newMarkers =
                 prevMarkers.length < 2
                     ? [...prevMarkers, newMarker]
-                    : [newMarker],
-        });
+                    : [newMarker];
+        } else {
+            newMarker.idx = idx;
+            prevMarkers[idx] = { ...newMarker };
+            newMarkers = [...prevMarkers];
+        }
+        set({ markers: newMarkers, route: null, stats: {}, alerts: {} });
+        // console.log("newMarkers", newMarkers);
+        calcRoute(newMarkers);
     },
 
-    setProfile: (index) =>
+    modal: false,
+    modalCookies: false,
+    setModal: (modal) => set({ modal }),
+
+    // setProfile: (index) => {
+    //     set(() => ({
+    //         selectedProfile: profileList[index],
+    //         selectedProfileId: index,
+    //         mainColor: profileList[index].color,
+    //     }));
+    // },
+
+    setProfile: (profileData) => {
         set(() => ({
-            selectedProfile: profileList[index],
-            selectedProfileId: index,
-            mainColor: profileList[index].color,
+            selectedProfile: profileData,
+            selectedProfileId: profileData.id,
+            mainColor: profileData.color,
+        }));
+    },
+
+    retrieveProfileById: (id) => {
+        const profile = profileList.find((p) => p.id === id);
+        return profile || null;
+    },
+
+    calcRoute: async (markers) => {
+        const { selectedProfile, setModal } = get();
+        const params = selectedProfile.params;
+
+        set({ route: null });
+
+        if (markers.length == 2) {
+            const locs = markers.map((m) => ({
+                lat: m.coordinates.lat,
+                lon: m.coordinates.lng, // note here lon lng
+            }));
+
+            const route = await getRoute({
+                origin: locs[0],
+                destination: locs[1],
+                params: params,
+            });
+
+            const features = route.features;
+            const { alerts, stats } = postprocessRoute(route, params);
+            setModal(alerts.error);
+
+            set({
+                route,
+                stats: stats,
+                alerts: alerts,
+            });
+        }
+    },
+
+    resetPage: () =>
+        set(() => ({
+            page: "landing",
+            selectedProfile: null,
+            selectedProfileId: null,
+            mainColor: null,
+            markers: [],
+            route: null,
+            stats: {},
+            alerts: {},
         })),
 
-    calcRoute: async (origin, destination) => {
-        const { markers, selectedProfile } = get();
+    map: null,
+    setMap: (map) => set({ map }),
 
-        if (markers.length < 2) return null;
+    activeGps: false,
+    refreshBoundsCounter: 1,
+    refreshBounds: () => {
+        const current = get().refreshBoundsCounter;
+        set({ refreshBoundsCounter: current + 1 });
+    },
 
-        const route = await getRoute({
-            origin,
-            destination,
-            params: selectedProfile.params,
-        });
-
-        set({ route });
+    toggleGps: () => {
+        const current = get().activeGps;
+        set({ activeGps: !current });
     },
 }));

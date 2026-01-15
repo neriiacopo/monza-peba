@@ -1,7 +1,7 @@
 import { Box } from "@mui/material";
 import { Fragment } from "react";
 
-import { wrapSvg, colorizeSvg } from "../../lib/utils";
+import { wrapSvg, colorizeSvg } from "@/lib/utils";
 
 export default function ProfileCard({
     baseSvg,
@@ -13,10 +13,7 @@ export default function ProfileCard({
     return (
         <>
             {baseSvg && profilesSvg && (
-                <Box
-                    className="carousel-container"
-                    sx={{}}
-                >
+                <Box className="carousel-container">
                     {/* --- BASE LAYER (fixed) --- */}
                     <Box
                         className="costume-layer"

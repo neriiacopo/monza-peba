@@ -1,6 +1,6 @@
 
 SNAP_SQL_TMPL = """
-SELECT id
+SELECT id, ST_AsGeoJSON(the_geom)
 FROM {vertices}
 ORDER BY the_geom <-> ST_SetSRID(ST_Point(%s, %s), 4326)
 LIMIT 1;

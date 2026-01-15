@@ -5,20 +5,37 @@ import {
     IconButton,
     Typography,
     createFilterOptions,
+    Stack,
+    Box,
+    Fade,
+    Collapse,
 } from "@mui/material";
 import ShadowBox from "./ShadowBox.jsx";
 import { useStore } from "@/store/useStore.jsx";
+import { formatAddress } from "@/lib/data.utils.js";
+
+import { zoomToAll } from "@/lib/map.utils.js";
+
+import AccessibleIcon from "@mui/icons-material/Accessible";
+import NotAccessibleIcon from "@mui/icons-material/NotAccessible";
+import WheelchairPickupIcon from "@mui/icons-material/WheelchairPickup";
 
 export default function AddressInputAuto({
     theme,
     label = "Da",
     placeholder = "Seleziona una Destinazione",
+    idx = 0,
+    ...props
 }) {
     const inputRef = useRef(null);
-    const { addresses, setMarkers } = useStore();
+    const addresses = useStore((s) => s.geocoder);
+    const setMarkers = useStore((s) => s.setMarkers);
     const [value, setValue] = useState(null);
     const [inputValue, setInputValue] = useState("");
     const [open, setOpen] = useState(false);
+    const markers = useStore((state) => state.markers);
+    const map = useStore((s) => s.map);
+    const portalRef = useRef(null);
 
     const handleHideKeyboard = () => {
         inputRef.current.blur();
@@ -27,11 +44,27 @@ export default function AddressInputAuto({
     const options = useMemo(
         () =>
             addresses.map((feature, idx) => ({
-                label: `${feature.properties["nome strada"]}, ${feature.properties.numero}`,
-                value: feature.geometry.coordinates,
+                address: formatAddress(feature),
+                value: feature.coordinates,
+                feature: feature,
             })),
         [addresses]
     );
+
+    useEffect(() => {
+        if (markers.length === 0) {
+            setValue(null);
+            setInputValue("");
+        } else {
+            if (!markers[idx]) return;
+            setInputValue(markers[idx]?.address);
+            setValue({
+                address: markers[idx]?.address,
+                value: markers[idx]?.coordinates,
+                feature: markers[idx]?.feature,
+            });
+        }
+    }, [markers]);
 
     const filterOptions = createFilterOptions({
         limit: 10,
@@ -50,25 +83,30 @@ export default function AddressInputAuto({
             outlined={false}
             sx={{
                 height: `${theme.grid.units.h}px`,
-                marginY: theme.grid.spacing,
+                // marginY: theme.grid.spacing,
                 display: "flex",
                 flexDirection: "row",
                 alignItems: "center",
+                overflowY: "visible",
+                zIndex: open ? 1000 : 1,
+                position: "relative",
+                ...props.sx,
             }}
         >
-            <IconButton disabled>
+            <IconButton variant="inactive">
                 <Typography>{label}</Typography>
             </IconButton>
 
             <ShadowBox
                 // focus
                 sx={{
-                    height: `${theme.grid.units.h}px`,
+                    maxHeight: `calc(${theme.grid.units.h}px - ${theme.grid.spacing})`,
                     marginLeft: theme.grid.spacing,
-                    borderRadius: theme.brdRad,
+                    // borderRadius: theme.brdRad,
+                    borderRadius: 9999,
                     display: "flex",
                     alignItems: "center",
-                    paddingLeft: theme.offRad,
+                    pointerEvents: "auto",
                 }}
             >
                 <Autocomplete
@@ -76,12 +114,20 @@ export default function AddressInputAuto({
                     disableClearable
                     onChange={(e, newValue) => {
                         setValue(newValue);
-                        setMarkers({
-                            coordinates: newValue.value.reverse(),
-                            key: Date.now(),
-                        });
+                        setMarkers(
+                            {
+                                coordinates: newValue.value,
+                                address: newValue.address,
+                                key: Date.now(),
+                                feature: newValue.feature,
+                                idx: idx,
+                                sender: "textInput",
+                            },
+                            idx
+                        );
 
                         setOpen(false);
+                        // zoomToAll(map);
                         // if (inputRef.current) {
                         //     inputRef.current.blur();
                         // }
@@ -93,37 +139,77 @@ export default function AddressInputAuto({
                     }}
                     options={options}
                     filterOptions={filterOptions}
-                    getOptionLabel={(opt) => opt?.label || ""}
+                    getOptionLabel={(opt) => opt?.address || ""}
                     open={open}
                     sx={{
                         width: "100%",
-                        "& .MuiOutlinedInput-root": {
-                            paddingY: 0,
-                            paddingX: 0.5,
-                            height: "100%",
-                            color: theme.palette.primary.main,
-                        },
-                        "& .MuiInputBase-input": {
-                            padding: 0,
-                            fontSize: "0.9rem",
-                        },
-                        "& .MuiOutlinedInput-notchedOutline": {
-                            border: "none",
-                        },
-                        "& .MuiAutocomplete-endAdornment": {
-                            display: "none",
+                    }}
+                    renderInput={(params) =>
+                        labelAccessibility(params, placeholder, value, inputRef)
+                    }
+                    slotProps={{
+                        popper: {
+                            container: () => portalRef.current,
+                            sx: { mt: 0 },
                         },
                     }}
-                    renderInput={(params) => (
-                        <TextField
-                            inputRef={inputRef}
-                            {...params}
-                            placeholder={placeholder}
-                            variant="outlined"
-                        />
-                    )}
                 />
+                <Fade
+                    in={open}
+                    timeout={150}
+                    ref={portalRef}
+                >
+                    <Box
+                        sx={{
+                            position: "absolute",
+                            left: 0,
+                            right: 0,
+                            top: "100%",
+                            zIndex: -1,
+                            boxShadow: `0 2px 6px ${theme.palette.primary.main}55`,
+                        }}
+                    ></Box>
+                </Fade>
             </ShadowBox>
         </ShadowBox>
+    );
+}
+
+function labelAccessibility(params, placeholder, value, inputRef) {
+    return (
+        <Stack
+            direction="row"
+            alignItems="center"
+            spacing={1}
+        >
+            <TextField
+                inputRef={inputRef}
+                {...params}
+                placeholder={placeholder}
+                variant="outlined"
+            />
+            {value?.feature && value.feature?.wheelchair && (
+                <>
+                    <IconButton
+                        variant={"mini"}
+                        sx={{
+                            pointerEvents: "none",
+                            position: "absolute",
+                            right: 0,
+                        }}
+                    >
+                        {value.feature?.wheelchair == "yes" ? (
+                            <AccessibleIcon />
+                        ) : value.feature?.wheelchair == "no" ? (
+                            <NotAccessibleIcon />
+                        ) : value.feature?.wheelchair == "limited" ? (
+                            <WheelchairPickupIcon />
+                        ) : (
+                            <></>
+                        )}
+                    </IconButton>
+                </>
+            )}
+        </Stack>
     );
 }
