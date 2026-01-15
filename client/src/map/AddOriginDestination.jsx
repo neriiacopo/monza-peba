@@ -1,48 +1,26 @@
 import { useStore } from "@/store/useStore.jsx";
 
-import {
-    MapContainer,
-    TileLayer,
-    Pane,
-    CircleMarker,
-    useMapEvents,
-} from "react-leaflet";
+import { CircleMarker, useMapEvents } from "react-leaflet";
 
-import { use, useEffect, useRef, useState } from "react";
+import { findNearestPoint } from "../lib/map.utils";
+import { formatAddress } from "@/lib/data.utils.js";
 
-export default function AddOriginDestination() {
-    const mainColor = useStore((state) => state.mainColor);
-    const calcRoute = useStore((state) => state.calcRoute);
-
-    const { markers } = useStore();
-
-    useEffect(() => {
-        if (markers.length < 2) {
-            useStore.setState({ route: null });
-        }
-        if (markers.length === 2) {
-            const origin = {
-                lat: markers[0].coordinates[0],
-                lon: markers[0].coordinates[1],
-            };
-            const destination = {
-                lat: markers[1].coordinates[0],
-                lon: markers[1].coordinates[1],
-            };
-
-            calcRoute(origin, destination);
-        }
-    }, [markers]);
+export default function AddOriginDestination({ mainColor }) {
+    // const mainColor = useStore((s) => s.mainColor);
+    const markers = useStore((s) => s.markers);
 
     return (
         <>
-            <MapClickHandler />
+            <MapClickSnapHandler />
 
             {markers.length != 0 &&
                 markers.map((marker, index) => (
                     <CircleMarker
                         key={marker.key}
-                        center={[marker.coordinates[0], marker.coordinates[1]]}
+                        center={[
+                            marker.coordinates.lat,
+                            marker.coordinates.lng,
+                        ]}
                         radius={7}
                         // color={mainColor || "black"}
                         // fillColor={index == 0 ? mainColor : "white"}
@@ -57,12 +35,45 @@ export default function AddOriginDestination() {
 }
 
 function MapClickHandler() {
-    const { setMarkers } = useStore();
+    const setMarkers = useStore((s) => s.setMarkers);
 
     useMapEvents({
         click(e) {
             const { lat, lng } = e.latlng;
-            setMarkers({ coordinates: [lat, lng], key: Date.now() });
+            setMarkers({ coordinates: { lat, lng }, key: Date.now() });
+        },
+    });
+
+    return null;
+}
+
+function MapClickSnapHandler() {
+    const setMarkers = useStore((s) => s.setMarkers);
+    const spatialKindex = useStore.getState().addressesKIndex;
+    const markers = useStore((s) => s.markers);
+
+    const handleAction = (latlng) => {
+        const { lat, lng } = latlng;
+        const nearest = findNearestPoint(spatialKindex, lng, lat);
+
+        // console.log("Long press snapped to:", nearest);
+
+        setMarkers(
+            {
+                coordinates: nearest.coordinates,
+                address: formatAddress(nearest),
+                key: Date.now(),
+                feature: nearest,
+                sender: "mapHold",
+            }
+            // markers.length >= 1 ? 1 : 0
+        );
+    };
+
+    useMapEvents({
+        contextmenu(e) {
+            // right on deskto and pressed on mobile
+            handleAction(e.latlng);
         },
     });
 

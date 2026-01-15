@@ -1,6 +1,6 @@
 // Route.jsx
 import { useEffect, useState } from "react";
-import { LayerGroup, GeoJSON, useMap, Pane } from "react-leaflet";
+import { LayerGroup, GeoJSON, useMap, Pane, Polyline } from "react-leaflet";
 
 import Alerts from "@/map/Alerts.jsx";
 import * as L from "leaflet";
@@ -9,8 +9,14 @@ import { useStore } from "@/store/useStore.jsx";
 
 export default function Route({ mainColor }) {
     const map = useMap();
-    const [baseLine, setBaseLine] = useState(null);
+    const markers = useStore((s) => s.markers);
     const routeData = useStore((s) => s.route);
+    const [baseLine, setBaseLine] = useState(null);
+    const [connections, setConnections] = useState([]);
+
+    useEffect(() => {
+        console.log("makrs", markers);
+    }, [markers]);
 
     useEffect(() => {
         if (!routeData || !routeData.features) {
@@ -25,37 +31,63 @@ export default function Route({ mainColor }) {
         setBaseLine(baselineFeature.segments);
     }, [routeData]);
 
-    useEffect(() => {
-        if (!map || !routeData) return;
-        if (!routeData.features || routeData.features.length === 0) return;
-
-        const tempLayer = L.geoJSON(routeData);
-        const bounds = tempLayer.getBounds();
-        tempLayer.remove();
-
-        if (bounds.isValid()) {
-            map.fitBounds(bounds.pad(0.15), { animate: true });
-        }
-    }, [map, routeData]);
-
     if (!routeData || !routeData.features) return null;
 
     return (
         <LayerGroup>
-            {routeData.features.map((f, index) => (
-                <GeoJSON
-                    key={index}
-                    data={f}
-                    style={{
-                        color: mainColor,
-                        weight: 5,
-                        dashArray:
-                            f.properties.profile === "baseline" ? "5,15" : null,
-                        lineCap: "round",
-                        lineJoin: "round",
-                    }}
-                />
-            ))}
+            {routeData.features.map((f, index) => {
+                console.log("route feature", f);
+                return (
+                    <LayerGroup key={index}>
+                        <GeoJSON
+                            // key={index}
+                            data={f}
+                            style={{
+                                color: mainColor,
+                                weight: 5,
+                                dashArray:
+                                    f.properties.profile === "baseline"
+                                        ? "5,15"
+                                        : null,
+                                lineCap: "round",
+                                lineJoin: "round",
+                            }}
+                        />
+                        {f.properties.profile === "baseline" &&
+                            f.endpoints?.origin &&
+                            f.endpoints?.destination &&
+                            Object.keys(f.endpoints).map((k, i) => {
+                                console.log(markers, "markers", "k", k, "i", i);
+                                const mId = k === "origin" ? 0 : 1;
+                                return (
+                                    <Polyline
+                                        positions={[
+                                            [
+                                                ...f.endpoints[k].geometry
+                                                    .coordinates,
+                                            ].reverse(),
+                                            [
+                                                markers.find(
+                                                    (m) => m.idx == mId
+                                                ).coordinates.lat,
+                                                markers.find(
+                                                    (m) => m.idx == mId
+                                                ).coordinates.lng,
+                                            ],
+                                        ]}
+                                        pathOptions={{
+                                            color: mainColor,
+                                            weight: 3,
+                                            dashArray: "2,5",
+                                            lineCap: "round",
+                                            lineJoin: "round",
+                                        }}
+                                    />
+                                );
+                            })}
+                    </LayerGroup>
+                );
+            })}
             <Pane
                 name="alerts"
                 style={{ zIndex: 650 }}

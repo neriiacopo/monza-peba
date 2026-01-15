@@ -9,7 +9,14 @@ def snap_vertex(cur, lon, lat, vertices_tbl):
     row = cur.fetchone()
     if not row:
         raise NotFound("No nearby vertex found.")
-    return row[0]
+    return row
+
+# def retreive_vertex(cur, lon, lat, vertices_tbl):
+#     cur.execute(SNAP_SQL_TMPL.format(vertices=vertices_tbl), (lon, lat))
+#     row = cur.fetchone()
+#     if not row:
+#         raise NotFound("No nearby vertex found.")
+#     return row
 
 def shortest_path(cur, start_vid, end_vid, edges_tbl, algo, params=None):
     if algo == "weighted" and params is not None:
@@ -46,14 +53,22 @@ def shortest_path(cur, start_vid, end_vid, edges_tbl, algo, params=None):
 
 def route_between(cur, o_lon, o_lat, d_lon, d_lat, algo, params=None):
     cfg = current_app.config
-    s_vid = snap_vertex(cur, o_lon, o_lat, cfg["VERTICES_TABLE"])
-    e_vid = snap_vertex(cur, d_lon, d_lat, cfg["VERTICES_TABLE"])
+    s_v = snap_vertex(cur, o_lon, o_lat, cfg["VERTICES_TABLE"])
+    e_v = snap_vertex(cur, d_lon, d_lat, cfg["VERTICES_TABLE"])
+
+    s_vid = s_v[0]
+    e_vid = e_v[0]
 
     result = shortest_path(cur, s_vid, e_vid, cfg["EDGES_TABLE"], algo, params)
 
     result["start_vid"] = s_vid
     result["end_vid"] = e_vid
     result["algo"] = algo
+
+    result["endpoints"]= {
+        "origin": {"id": s_vid, "geometry": json.loads(s_v[1]) if s_v[1] else None},
+        "destination": {"id": e_vid, "geometry": json.loads(e_v[1]) if e_v[1] else None},
+    }
     return result
 
 ALLOWED_STEPS_TAGS = {"STEPS", "STEP_STAIRS"}
@@ -78,7 +93,6 @@ def build_where_clause(params: dict) -> str:
     #     clauses.append(f"(slope = 9999 OR slope <= {slope_max:.3f})")
       
     final_string = " AND ".join(clauses)
-    print("where clause:", final_string)
 
     return str(final_string)
 

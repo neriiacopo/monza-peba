@@ -1,6 +1,8 @@
 import { Box, IconButton, Link, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 
+import { useStore } from "@/store/useStore.jsx";
+
 import CookieIcon from "@mui/icons-material/Cookie";
 
 export default function Footer() {
@@ -27,19 +29,28 @@ export default function Footer() {
                     justifyContent: "flex-end",
                     alignItems: "flex-start",
                     fontSize: "0.8rem",
+                    pointerEvents: "auto",
                 }}
             >
-                <Link sx={{ fontWeight: "bold" }}>Contattaci</Link>
+                <Link
+                    sx={{ fontWeight: "bold" }}
+                    href="mailto:info@transformtransport.org"
+                >
+                    Contattaci
+                </Link>
                 <Typography
                     sx={{
                         fontSize: "0.8rem",
                     }}
                 >
-                    Systematica - Transform Transport
+                    Transform Transport
                 </Typography>
             </Box>
             <IconButton
-                // onClick={btn.action}
+                onClick={() => {
+                    console.log("Go to cookies page");
+                    useStore.setState({ modalCookies: true });
+                }}
                 sx={{
                     width: `${theme.iconH}`,
                     height: `${theme.iconH}`,

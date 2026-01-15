@@ -1,5 +1,6 @@
 log.txt
 /sql
 /env
+/_bk
 .env
 __pycache__

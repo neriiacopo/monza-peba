@@ -1,43 +1,85 @@
-import { Button } from "@mui/material";
+import { Button, IconButton, Stack } from "@mui/material";
 
 import ShadowBox from "./ShadowBox";
 import Basemap from "../map/Basemap";
 import VizSelection from "./VizSelection";
 import MainButton from "./MainButton";
+import Stats from "./Stats";
 
-export default function MapArea({ theme, initMap }) {
+import FullscreenIcon from "@mui/icons-material/Fullscreen";
+import OpenInFullIcon from "@mui/icons-material/OpenInFull";
+import GpsFixedIcon from "@mui/icons-material/GpsFixed";
+
+import { useStore } from "@/store/useStore";
+
+export default function MapArea({
+    theme,
+    initMap,
+    setExpand,
+    expand,
+    ...props
+}) {
     const pathOptions = ["Distanza", "Pendenza", "Larghezza", "Incidenti"];
+    const toggleGps = useStore((s) => s.toggleGps);
 
     return (
-        <ShadowBox
-            focus
-            sx={{
-                overflow: "hidden",
-                position: "relative",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-
-                marginY: theme.grid.spacing,
-                // height: `${theme.grid.units.h * 9}px`,
-                flexGrow: 1,
-            }}
-        >
-            <VizSelection
+        <>
+            {/* <VizSelection
                 theme={theme}
                 options={pathOptions}
-            />
+            /> */}
 
-            <MainButton
+            <Stack
                 sx={{
                     position: "absolute",
-                    bottom: 0,
-                    width: "100%",
+                    top: 0,
+                    right: 0,
                     zIndex: 10,
+                    color: theme.palette.primary.main,
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    pointerEvents: "none",
+                }}
+            >
+                <IconButton
+                    variant={"mini"}
+                    sx={{
+                        pointerEvents: "auto",
+                    }}
+                    onClick={() => setExpand((expand) => !expand)}
+                >
+                    <OpenInFullIcon />
+                </IconButton>
+                <IconButton
+                    variant={"mini"}
+                    sx={{
+                        pointerEvents: "auto",
+                    }}
+                    onClick={() => toggleGps()}
+                >
+                    <GpsFixedIcon />
+                </IconButton>
+            </Stack>
+
+            <Stats />
+
+            {initMap && (
+                <Basemap
+                    mainColor={theme.palette.primary.main}
+                    expand={expand}
+                />
+            )}
+            {/* <MainButton
+                sx={{
+                    position: "absolute",
+                    bottom: theme.grid.spacing,
+                    width: "50%",
+                    zIndex: 100,
                 }}
                 label="Segnala un Problema"
-            />
-            {initMap && <Basemap mainColor={theme.palette.primary.main} />}
-        </ShadowBox>
+            /> */}
+        </>
     );
 }

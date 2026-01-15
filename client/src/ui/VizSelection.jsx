@@ -1,6 +1,8 @@
-import { Box, Stack, IconButton, Button, Chip } from "@mui/material";
+import { Stack, IconButton, Chip } from "@mui/material";
 import { useState } from "react";
 
+import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 export default function VizSelection({
     theme,
     options,
@@ -21,6 +23,7 @@ export default function VizSelection({
     const btns = {
         left: {
             label: "◀",
+            icon: ArrowBackIosNewIcon,
             fn: () => {
                 changeSelection(-1);
                 if (prev) prev();
@@ -28,6 +31,7 @@ export default function VizSelection({
         },
         right: {
             label: "▶",
+            icon: ArrowForwardIosIcon,
             fn: () => {
                 changeSelection(+1);
                 if (next) next();
@@ -58,7 +62,8 @@ export default function VizSelection({
                 }}
                 onClick={btns.left.fn}
             >
-                {btns.left.label}
+                {/* {btns.left.label} */}
+                <btns.left.icon />
             </IconButton>
             {showLabel && <Chip label={selection} />}
             <IconButton
@@ -68,7 +73,8 @@ export default function VizSelection({
                     pointerEvents: "auto",
                 }}
             >
-                {btns.right.label}
+                {/* {btns.right.label} */}
+                <btns.right.icon />
             </IconButton>
         </Stack>
     );
