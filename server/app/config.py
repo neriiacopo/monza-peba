@@ -3,9 +3,12 @@ import os
 class Config:
     PGHOST = os.getenv("PGHOST", "localhost")
     PGPORT = int(os.getenv("PGPORT", "5432"))
-    PGDATABASE = os.getenv("PGDATABASE", "routing")
     PGUSER = os.getenv("PGUSER", "postgres")
     PGPASSWORD = os.getenv("PGPASSWORD", "postgres")
+    
+    PGDATABASE = os.getenv("PGDATABASE", "routing")
+    PGREPORTS = os.getenv("PGREPORTS", "reporting")
+    PGANALYTICS = os.getenv("PGANALYTICS", "analytics")
 
     EDGES_TABLE = os.getenv("EDGES_TABLE", "ways")
     VERTICES_TABLE = os.getenv("VERTICES_TABLE", "ways_vertices_pgr")

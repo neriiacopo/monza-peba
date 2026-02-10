@@ -21,6 +21,7 @@ import WidthMinSVGR from "@/assets/svg/outlined/icon_width_min.svg?react";
 import LightSVGR from "@/assets/svg/outlined/icon_light.svg?react";
 import CrashSVGR from "@/assets/svg/outlined/icon_crash.svg?react";
 import SlopeSVGR from "@/assets/svg/outlined/icon_slope.svg?react";
+import CenterlineSVGR from "@/assets/svg/outlined/icon_centerline.svg?react";
 import LogoSVGR from "@/assets/svg/outlined/icon_logo.svg?react";
 import FaceSVGR from "@/assets/svg/outlined/icon_face.svg?react";
 
@@ -36,6 +37,7 @@ export const ICON_MAP = {
     slope: SlopeSVGR,
     crash: CrashSVGR,
     pali_luce: LightSVGR,
+    centerline: CenterlineSVGR,
     logo: LogoSVGR,
     face: FaceSVGR,
 

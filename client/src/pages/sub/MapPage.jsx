@@ -1,6 +1,6 @@
 import { useStore } from "@/store/useStore.jsx";
 import { useEffect, useState, useRef } from "react";
-import { Fade, Box } from "@mui/material";
+import { Fade, Box, Chip } from "@mui/material";
 import { getBbox } from "@/lib/api";
 
 import AddressInputAuto from "@/ui/AddressInputAuto.jsx";
@@ -13,6 +13,14 @@ export default function MapPage({ theme, ...props }) {
     const [expand, setExpand] = useState(false);
     const mainRef = useRef(null);
     const markers = useStore((s) => s.markers);
+    const followGps = useStore((s) => s.followGps);
+    const isRouteLoading = useStore((s) => s.isRouteLoading);
+
+    useEffect(() => {
+        if (followGps && !expand) {
+            setExpand(true);
+        }
+    }, [followGps]);
 
     useEffect(() => {
         async function fetchBbox() {
@@ -81,10 +89,11 @@ export default function MapPage({ theme, ...props }) {
                     }}
                 />
             </Box>
+
             {/* Map Area */}
             {theme.isMobile ? (
                 <ShadowBox
-                    focus
+                    focus={!isRouteLoading}
                     sx={{
                         overflow: "hidden",
                         position: "relative",
@@ -95,6 +104,7 @@ export default function MapPage({ theme, ...props }) {
                         // marginTop: theme.grid.spacing,
                         // height: `${theme.grid.units.h * 9}px`,
                         flexGrow: 1,
+                        // transition: "all 0.3s ease-in-out",
                     }}
                 >
                     <MapArea
@@ -102,6 +112,7 @@ export default function MapPage({ theme, ...props }) {
                         initMap={initMap}
                         setExpand={setExpand}
                         expand={expand}
+                        interactive={!isRouteLoading}
                         sx={{ ...props.sx }}
                         ref={mainRef}
                     />

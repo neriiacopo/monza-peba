@@ -73,7 +73,7 @@ export default function ProfileSettings({
                                 textTransform: "none",
                                 display: "flex",
                                 alignItems: "center",
-                                justifyContent: "space-between",
+                                justifyContent: "flex-start",
                             }}
                         >
                             <IconButton
@@ -85,7 +85,7 @@ export default function ProfileSettings({
                                     component={useIcon(
                                         optionKeys[y] == "STEPS"
                                             ? "steps"
-                                            : "stairs"
+                                            : "stairs",
                                     )}
                                     inheritViewBox
                                     sx={{
@@ -98,7 +98,15 @@ export default function ProfileSettings({
                                     }}
                                 />
                             </IconButton>
-                            <Typography sx={{ fontSize: 14, mr: 1.5 }}>
+                            <Typography
+                                sx={{
+                                    fontSize: 14,
+                                    mr: 1.5,
+                                    textAlign: "left",
+                                }}
+                            >
+                                {selected.includes(k) ? "Evita " : "Accetta "}
+                                <br />
                                 {field.options[k].label ?? k}
                             </Typography>
                         </ToggleButton>
@@ -108,7 +116,7 @@ export default function ProfileSettings({
         );
     };
 
-    const renderSlider = (field) => {
+    const renderSlider = (field, custom = false) => {
         const min = field.min ?? (field.minmax ? field.minmax[0] : 0);
         const max = field.max ?? (field.minmax ? field.minmax[1] : 1);
         const step = field.step ?? 0.1;
@@ -117,7 +125,7 @@ export default function ProfileSettings({
         const value =
             typeof settings?.[field.id] === "number"
                 ? settings[field.id]
-                : field.default ?? min;
+                : (field.default ?? min);
 
         const handleChange = (_e, newValue) => {
             const next = Array.isArray(newValue) ? newValue[0] : newValue;
@@ -203,14 +211,40 @@ export default function ProfileSettings({
                                 mt: -1,
                             }}
                         >
-                            <Typography sx={{ fontSize: 11.5, opacity: 0.7 }}>
-                                {min}
-                                {unit}
-                            </Typography>
-                            <Typography sx={{ fontSize: 11.5, opacity: 0.7 }}>
-                                {max}
-                                {unit}
-                            </Typography>
+                            {custom ? (
+                                <>
+                                    <Typography
+                                        sx={{ fontSize: 11.5, opacity: 0.7 }}
+                                    >
+                                        min
+                                    </Typography>
+                                    <Typography
+                                        sx={{ fontSize: 11.5, opacity: 1 }}
+                                    >
+                                        Importanza
+                                    </Typography>
+                                    <Typography
+                                        sx={{ fontSize: 11.5, opacity: 0.7 }}
+                                    >
+                                        max
+                                    </Typography>
+                                </>
+                            ) : (
+                                <>
+                                    <Typography
+                                        sx={{ fontSize: 11.5, opacity: 0.7 }}
+                                    >
+                                        {min}
+                                        {unit}
+                                    </Typography>
+                                    <Typography
+                                        sx={{ fontSize: 11.5, opacity: 0.7 }}
+                                    >
+                                        {max}
+                                        {unit}
+                                    </Typography>
+                                </>
+                            )}
                         </Box>
                     </Stack>
                 </Stack>
@@ -220,7 +254,7 @@ export default function ProfileSettings({
 
     const renderField = (field) => {
         if (field.type === "toggleGroup") return renderToggleGroup(field);
-        if (field.type === "slider") return renderSlider(field);
+        if (field.type === "slider") return renderSlider(field, field.custom);
         return (
             <Box
                 key={field.id}

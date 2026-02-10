@@ -38,13 +38,20 @@ export default function Footer() {
                 >
                     Contattaci
                 </Link>
-                <Typography
+                <Box
+                    id="TT-logo-footer"
+                    component="img"
+                    src="/TT-logo-PdY.png"
+                    alt="TT logo"
+                    sx={{ width: "auto", height: "50%", mt: 0.5 }}
+                />
+                {/* <Typography
                     sx={{
                         fontSize: "0.8rem",
                     }}
                 >
                     Transform Transport
-                </Typography>
+                </Typography> */}
             </Box>
             <IconButton
                 onClick={() => {

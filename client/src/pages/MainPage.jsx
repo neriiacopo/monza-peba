@@ -9,8 +9,8 @@ import LandingPage from "./sub/LandingPage.jsx";
 
 import Banner from "@/ui/Banner.jsx";
 import Footer from "@/ui/Footer.jsx";
-import AlertModal from "@/alert/AlertModal.jsx";
-import CookiesModal from "@/alert/CookiesModal.jsx";
+import AlertModal from "@/modal/AlertModal.jsx";
+import CookiesModal from "@/modal/CookiesModal.jsx";
 
 import { useStore } from "@/store/useStore.jsx";
 

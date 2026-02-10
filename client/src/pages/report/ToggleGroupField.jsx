@@ -8,10 +8,12 @@ import {
     Radio,
 } from "@mui/material";
 
-export default function ToggleGroupField({ addData = null, ...props }) {
-    const [data, setData] = useState(
-        props.default ?? { id: null, label: null }
-    );
+export default function ToggleGroupField({
+    addData = null,
+    inputData,
+    ...props
+}) {
+    const [data, setData] = useState(inputData ?? { id: null, label: null });
 
     function updateValue(op) {
         setData(op);
@@ -32,21 +34,26 @@ export default function ToggleGroupField({ addData = null, ...props }) {
             <TableBody>
                 {props.options.map((op) => {
                     const checked = data?.id === op.id;
-
                     return (
                         <TableRow
                             key={op.id}
                             hover
-                            sx={{ cursor: "pointer" }}
+                            sx={{
+                                cursor: "pointer",
+                            }}
                             onClick={() => updateValue(op)}
                         >
-                            <TableCell sx={{ fontSize: 14 }}>
+                            <TableCell
+                                sx={{
+                                    fontSize: 14,
+                                }}
+                            >
                                 {op.label}
                             </TableCell>
                             <TableCell align="right">
                                 <Radio
                                     checked={checked}
-                                    onClick={(e) => e.stopPropagation()}
+                                    // onClick={(e) => e.stopPropagation()}
                                     size="small"
                                 />
                             </TableCell>

@@ -15,7 +15,7 @@ import { profileList } from "@/lib/profiles.config.js";
 import { extractLayers } from "@/lib/utils";
 import baseSvg from "@/assets/svg/layered/profiles_base.svg?raw";
 
-import ProfileSettings from "@/ui/profiles/ProfileSettings.jsx";
+import ProfileSettings from "@/pages/profiles/ProfileSettings.jsx";
 
 import ShadowBox from "@/ui/ShadowBox.jsx";
 import Spacer from "@/ui/Spacer.jsx";
@@ -23,8 +23,8 @@ import FullWButton from "@/ui/FullWButton";
 
 import TuneIcon from "@mui/icons-material/Tune";
 
-import "@/ui/profiles/character.css";
-import ProfileCard from "@/ui/profiles/ProfileCard";
+import "@/pages/profiles/character.css";
+import ProfileCard from "@/pages/profiles/ProfileCard";
 
 export default function ProfileSelectionPage({ theme, ...props }) {
     const profile = useStore((s) => s.selectedProfile);

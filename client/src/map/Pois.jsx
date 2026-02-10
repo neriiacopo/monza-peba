@@ -11,7 +11,7 @@ import NotAccessibleIcon from "@mui/icons-material/NotAccessible";
 import WheelchairPickupIcon from "@mui/icons-material/WheelchairPickup";
 import QuestionMarkIcon from "@mui/icons-material/QuestionMark";
 
-import { zoomAtObj } from "@/lib/map.utils";
+import { zoomAtPt } from "@/lib/map.utils";
 import { formatAddress } from "@/lib/data.utils.js";
 
 export default function Pois({
@@ -71,7 +71,7 @@ export default function Pois({
                     isFocused={p.id === focusId}
                     onClick={() => {
                         setFocusId(p.id);
-                        zoomAtObj(map, p, minZoom, maxZoom);
+                        zoomAtPt(map, p, minZoom, maxZoom);
                     }}
                     delayMs={p.order * staggerMs}
                     tooltipBg={"white"}
@@ -110,10 +110,10 @@ function PoiMarker({
             wheelchair === "yes"
                 ? color
                 : wheelchair === "limited"
-                ? lighten(color, 0.33)
-                : wheelchair === "no"
-                ? "white"
-                : lighten(color, 0.9);
+                  ? lighten(color, 0.33)
+                  : wheelchair === "no"
+                    ? "white"
+                    : lighten(color, 0.9);
 
         const highCol = positiveTags.includes(wheelchair) ? "white" : color;
 
@@ -138,8 +138,8 @@ function PoiMarker({
                         !wheelchair && !isFocused
                             ? "scale(0.2)"
                             : isFocused || isFocused == null
-                            ? "scale(1)"
-                            : `scale(${sFactor})`,
+                              ? "scale(1)"
+                              : `scale(${sFactor})`,
                     transition: `transform 1000ms ease-out`,
                 }}
             >
@@ -152,7 +152,7 @@ function PoiMarker({
                 ) : (
                     <QuestionMarkIcon />
                 )}
-            </div>
+            </div>,
         );
 
         return L.divIcon({
@@ -180,8 +180,6 @@ function PoiMarker({
                     if (!isFocused) {
                         onClick?.();
                     } else {
-                        console.log("confirm");
-
                         setMarkers({
                             coordinates: { lat: position[0], lng: position[1] },
                             address: formatAddress(marker),
@@ -195,13 +193,14 @@ function PoiMarker({
             className={`anim-marker ${
                 entered ? "visible-marker" : "hidden-marker"
             }`}
+            zoomIgnore
         >
             <Tooltip
                 direction="top"
                 offset={[0, -9]}
                 opacity={1}
                 className="poi-tooltip"
-                sticky={true}
+                sticky={false}
             >
                 <Chip
                     label={label}

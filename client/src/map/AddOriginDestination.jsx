@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useStore } from "@/store/useStore.jsx";
 
 import { CircleMarker, useMapEvents } from "react-leaflet";
@@ -6,12 +7,12 @@ import { findNearestPoint } from "../lib/map.utils";
 import { formatAddress } from "@/lib/data.utils.js";
 
 export default function AddOriginDestination({ mainColor }) {
-    // const mainColor = useStore((s) => s.mainColor);
     const markers = useStore((s) => s.markers);
 
+    const [clickPos, setClickPos] = useState([]);
     return (
         <>
-            <MapClickSnapHandler />
+            <MapClickSnapHandler setClickPos={setClickPos} />
 
             {markers.length != 0 &&
                 markers.map((marker, index) => (
@@ -30,11 +31,22 @@ export default function AddOriginDestination({ mainColor }) {
                         style={{ boxShadow: "0 0 5px rgba(0,0,0,1)" }}
                     />
                 ))}
+
+            {/* // Show the clicked position (for testing) */}
+            {/* {clickPos.length > 0 && (
+                <CircleMarker
+                    center={clickPos}
+                    radius={20}
+                    color={"red"}
+                    fillColor={"red"}
+                    fillOpacity={1}
+                />
+            )} */}
         </>
     );
 }
 
-function MapClickHandler() {
+function MapClickHandler({}) {
     const setMarkers = useStore((s) => s.setMarkers);
 
     useMapEvents({
@@ -47,27 +59,23 @@ function MapClickHandler() {
     return null;
 }
 
-function MapClickSnapHandler() {
+function MapClickSnapHandler({ setClickPos }) {
     const setMarkers = useStore((s) => s.setMarkers);
     const spatialKindex = useStore.getState().addressesKIndex;
     const markers = useStore((s) => s.markers);
 
     const handleAction = (latlng) => {
         const { lat, lng } = latlng;
+        setClickPos([lat, lng]);
+
         const nearest = findNearestPoint(spatialKindex, lng, lat);
-
-        // console.log("Long press snapped to:", nearest);
-
-        setMarkers(
-            {
-                coordinates: nearest.coordinates,
-                address: formatAddress(nearest),
-                key: Date.now(),
-                feature: nearest,
-                sender: "mapHold",
-            }
-            // markers.length >= 1 ? 1 : 0
-        );
+        setMarkers({
+            coordinates: nearest.coordinates,
+            address: formatAddress(nearest),
+            key: Date.now(),
+            feature: nearest,
+            sender: "mapHold",
+        });
     };
 
     useMapEvents({

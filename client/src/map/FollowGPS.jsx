@@ -26,7 +26,7 @@ export default function FollowGPS({ type, color }) {
                             const pt = point(current);
                             const inside = booleanPointInPolygon(
                                 pt,
-                                boundary[0]
+                                boundary[0],
                             );
 
                             // Spatial check inside boundary
@@ -50,7 +50,7 @@ export default function FollowGPS({ type, color }) {
                         }
                     },
                     console.error,
-                    { enableHighAccuracy: true }
+                    { enableHighAccuracy: true },
                 );
             }
 
@@ -66,6 +66,7 @@ export default function FollowGPS({ type, color }) {
             type={"face"}
             color={color}
             size={"big"}
+            id={"GPS-marker"}
         />
     );
 }

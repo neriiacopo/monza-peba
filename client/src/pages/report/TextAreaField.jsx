@@ -4,9 +4,9 @@ import { useTheme } from "@mui/material";
 
 import ShadowBox from "@/ui/ShadowBox.jsx";
 
-export default function TextAreaField({ addData, ...props }) {
+export default function TextAreaField({ addData, inputData, ...props }) {
     const theme = useTheme();
-    const [text, setText] = useState("");
+    const [text, setText] = useState(inputData ?? "");
 
     function updateValue(op) {
         setText(op);

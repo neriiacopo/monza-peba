@@ -119,6 +119,7 @@ export const paramsDescriptions = [
                 step: 0.1,
                 default: 1.0,
                 desc: "Larghezza minima del percorso in metri.",
+                custom: false,
             },
             {
                 id: "slope",
@@ -130,6 +131,7 @@ export const paramsDescriptions = [
                 step: 1,
                 default: 8,
                 desc: "Percentuale di pendenza massima consentita.",
+                custom: false,
             },
         ],
     },
@@ -137,7 +139,7 @@ export const paramsDescriptions = [
     {
         id: 2,
         title: "Preferenze",
-        desc: "Queste impostazioni non escludono un percorso, ma influenzano la scelta finale (0 = non considerare, 1 = evitare il più possibile).",
+        desc: "Queste impostazioni non escludono un percorso, ma influenzano la scelta finale (0 = nessuna importanza, 1 = molta importanza).",
 
         fields: [
             {
@@ -149,6 +151,7 @@ export const paramsDescriptions = [
                 step: 0.1,
                 default: 0.2,
                 desc: "Tolleranza a percorsi con incidenti frequenti.",
+                custom: true,
             },
             {
                 id: "pali_luce",
@@ -159,6 +162,7 @@ export const paramsDescriptions = [
                 step: 0.1,
                 default: 0.5,
                 desc: "Importanza a scegliere sentieri con buona illuminazione o segnaletica.",
+                custom: true,
             },
         ],
     },

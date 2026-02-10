@@ -2,22 +2,27 @@ backend/
 ├─ app/
 │  ├─ __init__.py            # app factory, blueprints, error handlers
 │  ├─ config.py              # env-driven settings
-│  ├─ extensions.py          # DB connection pool (psycopg2)
+│  ├─ extensions.py          # DB connection pool (psycopg2) - db/reports/analytics
 │  ├─ errors.py              # centralized HTTP errors + handlers
 │  ├─ routes/
 │  │  ├─ __init__.py
-│  │  ├─ health.py           # GET /health
+│  │  ├─ health.py           # GET  /health
+│  │  ├─ geodata.py          # GET  /bbox (/network)
+│  │  ├─ reporting.py        # POST /report
 │  │  └─ routing.py          # POST /route
 │  ├─ controllers/
+│  │  ├─ geodata_controller.py
+│  │  ├─ reporting_controller.py
 │  │  └─ routing_controller.py
 │  ├─ services/
-│  │  └─ pgrouting.py        # SQL for snapping + shortest path
+│  │  ├─ geodata.py          # spatial operations
+│  │  ├─ telemetry.py        # manage logs for analytics
+│  │  └─ pgrouting.py        # SQL logics for snapping + shortest path
 │  ├─ dao/
 │  │  └─ pg.py               # low-level DB helpers
 │  └─ utils/
+│     ├─ queries.py          # SQL pgrouting queries
 │     └─ validation.py       # Pydantic request models
 ├─ wsgi.py                   # gunicorn entrypoint
 ├─ requirements.txt
-├─ .env.example
-└─ tests/
-   └─ test_routing.py
+└─ .env.example

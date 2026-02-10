@@ -1,9 +1,10 @@
 import { Fragment } from "react";
-import { Box, IconButton, SvgIcon } from "@mui/material";
+import { Box, IconButton, SvgIcon, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 
 import { useStore } from "@/store/useStore.jsx";
 import { useCookieStore } from "../store/useCookieStore";
+import { useDeviceOrientation } from "../map/useDeviceOrientation";
 
 import LogoIcon from "@/assets/svg/outlined/icon_logo.svg?react";
 import MapIcon from "@mui/icons-material/Map";
@@ -16,6 +17,8 @@ export default function Banner({}) {
     const resetPage = useStore((s) => s.resetPage);
     const selectedProfile = useStore((s) => s.selectedProfile);
     const hasProfileData = useCookieStore((s) => s.hasProfileData);
+
+    const { heading, isTracking, requestPermission } = useDeviceOrientation();
 
     const btns = [
         {

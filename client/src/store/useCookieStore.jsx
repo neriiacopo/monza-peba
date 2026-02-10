@@ -8,7 +8,7 @@ const cloneProfileDataTemplate = () => structuredClone(profileDataTemplate);
 
 const setAllAccepted = (obj, value) =>
     Object.fromEntries(
-        Object.entries(obj).map(([k, v]) => [k, { ...v, accepted: value }])
+        Object.entries(obj).map(([k, v]) => [k, { ...v, accepted: value }]),
     );
 
 export const useCookieStore = create(
@@ -18,6 +18,17 @@ export const useCookieStore = create(
             profileData: cloneProfileDataTemplate(),
             hasProfileData: false,
             updatedAt: null,
+            clientId: null,
+
+            // get make client id for monitoring purposes
+            ensureClientId: () => {
+                let id = get().clientId;
+                if (!id) {
+                    id = crypto.randomUUID();
+                    // set({ clientId: id });
+                }
+                return id;
+            },
 
             // derived helpers
             hasDecided: () => {
@@ -40,12 +51,17 @@ export const useCookieStore = create(
             setProfileData: (data) => {
                 const templateData = cloneProfileDataTemplate();
 
+                if (!data || typeof data !== "object") return;
+
                 const filteredData = Object.fromEntries(
-                    Object.entries(data).filter(([k]) => k in templateData)
+                    Object.entries(data).filter(([k]) => k in templateData),
                 );
+                const clientId = get().ensureClientId();
+
                 set(() => ({
                     profileData: filteredData,
                     hasProfileData: true,
+                    clientId,
                     updatedAt: Date.now(),
                 }));
             },
@@ -97,8 +113,9 @@ export const useCookieStore = create(
                 permissions: state.permissions,
                 profileData: state.profileData,
                 hasProfileData: state.hasProfileData,
+                clientId: state.clientId,
                 updatedAt: state.updatedAt,
             }),
-        }
-    )
+        },
+    ),
 );

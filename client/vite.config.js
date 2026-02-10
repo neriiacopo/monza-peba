@@ -2,6 +2,7 @@ import react from "@vitejs/plugin-react";
 import topLevelAwait from "vite-plugin-top-level-await";
 import path from "path";
 import svgr from "vite-plugin-svgr";
+// import basicSsl from "@vitejs/plugin-basic-ssl";
 
 const isCodeSandbox =
     "SANDBOX_URL" in process.env || "CODESANDBOX_HOST" in process.env;
@@ -9,7 +10,12 @@ const isCodeSandbox =
 const isCloudflare = process.env.CLOUDFLARE_PAGES === "true";
 
 export default {
-    plugins: [react(), topLevelAwait(), svgr()],
+    plugins: [
+        react(),
+        topLevelAwait(),
+        // basicSsl(),
+        svgr(),
+    ],
     root: ".",
     resolve: {
         alias: {

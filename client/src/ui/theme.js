@@ -158,6 +158,9 @@ export default function getTheme(profile) {
                             "&:hover": {
                                 backgroundColor: darken(secondary, 0.1),
                             },
+                            "&:focus": {
+                                backgroundColor: darken(secondary, 0.15),
+                            },
                             "& .MuiSvgIcon-root": {
                                 color: main,
                             },
@@ -273,6 +276,10 @@ export default function getTheme(profile) {
                         "&:after": {
                             borderBottomColor: main, // focused
                         },
+                        "&.Mui-disabled": {
+                            color: lighten(main, 0.5),
+                            WebkitTextFillColor: lighten(main, 0.5),
+                        },
                     },
                 },
             },
@@ -309,6 +316,12 @@ export default function getTheme(profile) {
                         "& .MuiAutocomplete-endAdornment": {
                             display: "none",
                         },
+                        // "&.Mui-disabled": {
+                        //     "& .MuiAutocomplete-input": {
+                        //         color: lighten(main, 0.5),
+                        //         WebkitTextFillColor: lighten(main, 0.5),
+                        //     },
+                        // },
                     },
 
                     popper: {

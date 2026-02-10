@@ -52,14 +52,29 @@ export default function CookiesModal({ theme }) {
                 Object.entries(prev).map(([k, v]) => [
                     k,
                     { ...v, accepted: value },
-                ])
-            )
+                ]),
+            ),
         );
 
     const onAcceptAll = () => {
         setAllLocal(true);
         setTimeout(() => {
             acceptAllCookies();
+            useStore.setState({ modalCookies: false });
+        }, 500);
+    };
+
+    const onAcceptMandatory = () => {
+        const mandatoryPermissions = Object.fromEntries(
+            Object.entries(permissions).map(([k, v]) => [
+                k,
+                { ...v, accepted: v.optional ? false : true },
+            ]),
+        );
+
+        setPermissions(mandatoryPermissions);
+        setTimeout(() => {
+            saveCookies(mandatoryPermissions);
             useStore.setState({ modalCookies: false });
         }, 500);
     };
@@ -94,7 +109,7 @@ export default function CookiesModal({ theme }) {
                         position: "relative",
                         backgroundColor: theme.palette.secondary.main,
                         boxShadow: `0 2px 6px ${accent}55`,
-                        maxHeight: "80dvh",
+                        maxHeight: "90dvh",
                         display: "flex",
                         flexDirection: "column",
                         overflowY: "auto",
@@ -120,23 +135,26 @@ export default function CookiesModal({ theme }) {
                         sx={{ borderColor: accent, opacity: 0.65, mb: 1.5 }}
                     />
 
-                    {Object.entries(permissions).map(([key, data]) => (
-                        <Fragment key={key}>
-                            <CollapsableSection
-                                title={data.label}
-                                filename={data.filename}
-                                theme={theme}
-                            />
+                    {Object.entries(permissions).map(
+                        ([key, data]) =>
+                            data.label && (
+                                <Fragment key={key}>
+                                    <CollapsableSection
+                                        title={data.label}
+                                        filename={data.filename}
+                                        theme={theme}
+                                    />
 
-                            <Divider
-                                sx={{
-                                    borderColor: accent,
-                                    opacity: 0.65,
-                                    mb: 1.5,
-                                }}
-                            />
-                        </Fragment>
-                    ))}
+                                    <Divider
+                                        sx={{
+                                            borderColor: accent,
+                                            opacity: 0.65,
+                                            mb: 1.5,
+                                        }}
+                                    />
+                                </Fragment>
+                            ),
+                    )}
 
                     <Box
                         sx={{
@@ -183,6 +201,12 @@ export default function CookiesModal({ theme }) {
                             </Box>
                         ))}
                     </Box>
+                    <FullWButton
+                        variant={"inverted"}
+                        sx={{ mb: 1 }}
+                        onClick={onAcceptMandatory}
+                        label="Accetta i Cookies obbligatori"
+                    />
                     <FullWButton
                         onClick={onAcceptAll}
                         label="Accetta tutti i Cookies"

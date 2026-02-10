@@ -2,6 +2,7 @@ import { Marker } from "react-leaflet";
 import * as L from "leaflet";
 import { renderToString } from "react-dom/server";
 
+import { lighten } from "@mui/material";
 import CustomIcon from "@/ui/CustomIcon";
 
 export default function CustomIconMarker({
@@ -10,6 +11,10 @@ export default function CustomIconMarker({
     color,
     i,
     size = "normal",
+    accessible = false,
+    id = null,
+    children,
+    onClick = null,
 }) {
     const element = renderToString(
         <div
@@ -17,7 +22,7 @@ export default function CustomIconMarker({
                 width: size === "big" ? 48 : 36,
                 height: size === "big" ? 48 : 36,
                 borderRadius: "50%",
-                background: "white",
+                background: accessible ? lighten(color, 0.66) : "white",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -32,7 +37,7 @@ export default function CustomIconMarker({
                 color={color}
                 size={24}
             />
-        </div>
+        </div>,
     );
 
     const icon = L.divIcon({
@@ -47,6 +52,15 @@ export default function CustomIconMarker({
         <Marker
             icon={icon}
             position={position}
-        />
+            id={id}
+            eventHandlers={{
+                click: (e) => {
+                    e.originalEvent?.stopPropagation();
+                    if (onClick) onClick(e);
+                },
+            }}
+        >
+            {children}
+        </Marker>
     );
 }

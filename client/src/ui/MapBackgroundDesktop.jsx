@@ -7,9 +7,7 @@ import Basemap from "@/map/Basemap";
 
 export default function MapBackgroundDesktop({ theme, ...props }) {
     const [initMap, setInitMap] = useState(false);
-    const [expand, setExpand] = useState(false);
-    const mainRef = useRef(null);
-    const markers = useStore((s) => s.markers);
+    const isRouteLoading = useStore((s) => s.isRouteLoading);
 
     useEffect(() => {
         async function fetchBbox() {
@@ -47,7 +45,8 @@ export default function MapBackgroundDesktop({ theme, ...props }) {
                 {initMap && (
                     <Basemap
                         mainColor={theme.palette.primary.main}
-                        expand={expand}
+                        expand={true}
+                        interactive={!isRouteLoading}
                     />
                 )}
             </Box>

@@ -14,8 +14,6 @@ import ShadowBox from "./ShadowBox.jsx";
 import { useStore } from "@/store/useStore.jsx";
 import { formatAddress } from "@/lib/data.utils.js";
 
-import { zoomToAll } from "@/lib/map.utils.js";
-
 import AccessibleIcon from "@mui/icons-material/Accessible";
 import NotAccessibleIcon from "@mui/icons-material/NotAccessible";
 import WheelchairPickupIcon from "@mui/icons-material/WheelchairPickup";
@@ -37,6 +35,8 @@ export default function AddressInputAuto({
     const map = useStore((s) => s.map);
     const portalRef = useRef(null);
 
+    const followGps = useStore((s) => s.followGps);
+
     const handleHideKeyboard = () => {
         inputRef.current.blur();
     };
@@ -48,15 +48,15 @@ export default function AddressInputAuto({
                 value: feature.coordinates,
                 feature: feature,
             })),
-        [addresses]
+        [addresses],
     );
 
     useEffect(() => {
-        if (markers.length === 0) {
+        if (markers.length === 0 || markers[idx] == null) {
             setValue(null);
             setInputValue("");
         } else {
-            if (!markers[idx]) return;
+            // if (!markers[idx]) return;
             setInputValue(markers[idx]?.address);
             setValue({
                 address: markers[idx]?.address,
@@ -99,6 +99,7 @@ export default function AddressInputAuto({
 
             <ShadowBox
                 // focus
+
                 sx={{
                     maxHeight: `calc(${theme.grid.units.h}px - ${theme.grid.spacing})`,
                     marginLeft: theme.grid.spacing,
@@ -112,6 +113,7 @@ export default function AddressInputAuto({
                 <Autocomplete
                     value={value}
                     disableClearable
+                    disabled={followGps}
                     onChange={(e, newValue) => {
                         setValue(newValue);
                         setMarkers(
@@ -123,14 +125,10 @@ export default function AddressInputAuto({
                                 idx: idx,
                                 sender: "textInput",
                             },
-                            idx
+                            idx,
                         );
 
                         setOpen(false);
-                        // zoomToAll(map);
-                        // if (inputRef.current) {
-                        //     inputRef.current.blur();
-                        // }
                     }}
                     inputValue={inputValue}
                     onInputChange={(e, newInputValue) => {

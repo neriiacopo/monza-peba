@@ -21,6 +21,8 @@ export default function ShadowBox({
             setTimeout(() => {
                 setFocusDelay(true);
             }, 300);
+        } else {
+            setFocusDelay(false); // TBC //////////////////////
         }
     }, [focus, theme]);
 
@@ -51,11 +53,12 @@ export default function ShadowBox({
                 backgroundColor: light
                     ? lighten(theme.palette.primary.main, 0.9)
                     : outlined
-                    ? theme.palette.secondary.main
-                    : "transparent",
+                      ? theme.palette.secondary.main
+                      : "transparent",
 
                 ...props.sx,
             }}
+            className={props.className}
         >
             {props.children}
         </Box>

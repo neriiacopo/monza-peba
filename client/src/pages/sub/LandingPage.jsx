@@ -15,8 +15,9 @@ import { useState, useEffect } from "react";
 import { profileList } from "@/lib/profiles.config.js";
 
 import { ThemeContext, useTheme } from "@emotion/react";
-import { useIcon } from "../../assets/useIcon";
+import { useIcon } from "@/assets/useIcon";
 
+import MdModal from "@/modal/MdModal";
 import Spacer from "@/ui/Spacer.jsx";
 import MainButton from "@/ui/MainButton";
 
@@ -72,6 +73,8 @@ export default function LandingPage({ ...props }) {
 }
 
 function PageOne({ theme, forward }) {
+    const [modal, setModal] = useState(false);
+
     return (
         <>
             <Box sx>
@@ -103,7 +106,7 @@ function PageOne({ theme, forward }) {
                         justifyContent: "center",
                     }}
                 >
-                    <MainButton
+                    {/* <MainButton
                         variant={"inverted"}
                         label={"Come funziona?"}
                         component="a"
@@ -111,6 +114,13 @@ function PageOne({ theme, forward }) {
                         href="https://transformtransport.org/research/inclusive-mobility/icts-in-support-of-monzas-peba-plan-for-eliminating-architectural-barriers/"
                         target="_blank"
                         rel="noopener noreferrer"
+                        sx={{ maxHeight: "75%" }}
+                    /> */}
+                    <MainButton
+                        variant={"inverted"}
+                        label={"Come funziona?"}
+                        component="a"
+                        onClick={() => setModal(true)}
                         sx={{ maxHeight: "75%" }}
                     />
                 </Spacer>
@@ -127,6 +137,12 @@ function PageOne({ theme, forward }) {
                     />
                 </Spacer>
             </Box>
+
+            <MdModal
+                theme={theme}
+                open={modal}
+                setModal={setModal}
+            />
         </>
     );
 }

@@ -1,63 +1,20 @@
-import { useEffect, useRef, useState } from "react";
-import {
-    MapContainer,
-    TileLayer,
-    Pane,
-    useMapEvents,
-    GeoJSON,
-    Rectangle,
-    useMap,
-} from "react-leaflet";
+import { useRef } from "react";
+import { MapContainer, TileLayer, Pane, GeoJSON } from "react-leaflet";
 
 import { useStore } from "@/store/useStore.jsx";
 
 import { CircleMarker } from "react-leaflet";
 
-import * as L from "leaflet";
 import "leaflet/dist/leaflet.css";
-// Import Marker and useMapEvents
-
-import { getGPSPosition } from "@/lib/map.utils";
-
-import { zoomToAll } from "@/lib/map.utils";
 
 import "./map.css";
 
-export default function KeyMap({ mainColor, getPosition = null }) {
+export default function KeyMap({
+    mainColor,
+    location = { lat: null, lng: null },
+}) {
     const mapRef = useRef();
     const boundary = useStore((s) => s.boundary);
-
-    const [location, setLocation] = useState(null);
-    const [maxBounds, setMaxBounds] = useState(null);
-
-    useEffect(() => {
-        getGPSPosition().then(setLocation).catch(console.error);
-    }, []);
-
-    useEffect(() => {
-        if (!location?.lat || !location?.lng) return;
-        getPosition(location);
-    }, [location]);
-
-    useEffect(() => {
-        // Update map view on location change
-        if (!location?.lat || !location?.lng) return;
-
-        const map = mapRef.current;
-        if (!map) return;
-
-        map.setView([location.lat, location.lng], map.getZoom(), {
-            animate: true,
-        });
-    }, [location, getPosition]);
-
-    // Set map bounds when boundary changes
-    // useEffect(() => {
-    //     if (boundary) {
-    //         const bounds = L.geoJSON(boundary).getBounds();
-    //         setMaxBounds(bounds.pad(0.4));
-    //     }
-    // }, [boundary]);
 
     const monzaCentroid = [45.5846, 9.2733];
 
@@ -72,22 +29,23 @@ export default function KeyMap({ mainColor, getPosition = null }) {
                     height: "100vh",
                     backgroundColor: mainColor,
                     mixBlendMode: "lighten",
-                    pointerEvents: "none",
+                    pointerEvents: "auto", // block interaction with map
                     zIndex: 1000,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                 }}
             ></div>
             <MapContainer
-                zoomSnap={0.1}
-                zoom={14}
-                center={monzaCentroid}
-                minZoom={13}
-                maxZoom={18}
-                maxBounds={maxBounds}
-                // bounds={bbox}
+                rotate={false}
+                rotateControl={false}
+                zoom={17}
+                center={location ? [location.lat, location.lng] : monzaCentroid}
                 zoomControl={false}
                 dragging={false}
-                // webGL={true}
+                touchZoom={false}
                 ref={mapRef}
+                interactive={false}
                 style={{
                     zIndex: 1,
                     backgroundColor: mainColor,
@@ -117,21 +75,14 @@ export default function KeyMap({ mainColor, getPosition = null }) {
                         attribution='&copy; <a href="https://carto.com/">CARTO</a>'
                     />
                 </Pane>
-                <Pane
-                    name="center"
-                    style={{ zIndex: 600 }}
-                >
-                    {location?.lat && location?.lng && (
-                        <CircleMarker
-                            center={[location.lat, location.lng]}
-                            radius={7}
-                            color={mainColor}
-                            fillColor={"white"}
-                            fillOpacity={1}
-                            style={{ boxShadow: "0 0 5px rgba(0,0,0,1)" }}
-                        />
-                    )}
-                </Pane>
+                <CircleMarker
+                    center={[location.lat, location.lng]}
+                    radius={7}
+                    color={mainColor}
+                    fillColor={"white"}
+                    fillOpacity={1}
+                    style={{ boxShadow: "0 0 5px rgba(0,0,0,1)" }}
+                />
             </MapContainer>
         </>
     );

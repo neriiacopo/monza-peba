@@ -11,6 +11,11 @@ export default function MainButton({ label, variant = "default", ...props }) {
                 minHeight: "auto",
 
                 ...props.sx,
+                "&:hover": {
+                    // bgcolor: theme.palette.primary.main,
+                    opacity: 0.92,
+                    boxShadow: "none",
+                },
             }}
         >
             {label}

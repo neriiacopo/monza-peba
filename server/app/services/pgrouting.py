@@ -48,9 +48,6 @@ def shortest_path(cur, start_vid, end_vid, edges_tbl, algo, params=None):
         "total_cost": total_cost,
     }
 
-
-
-
 def route_between(cur, o_lon, o_lat, d_lon, d_lat, algo, params=None):
     cfg = current_app.config
     s_v = snap_vertex(cur, o_lon, o_lat, cfg["VERTICES_TABLE"])
@@ -72,7 +69,6 @@ def route_between(cur, o_lon, o_lat, d_lon, d_lat, algo, params=None):
     return result
 
 ALLOWED_STEPS_TAGS = {"STEPS", "STEP_STAIRS"}
-
 def build_where_clause(params: dict) -> str:
     clauses = ["1=1"]  
 
@@ -83,6 +79,7 @@ def build_where_clause(params: dict) -> str:
         clauses.append(f"steps NOT IN ({steps_list_sql})")
 
     width_min = params.get("width_min")
+    
     if width_min is not None:
         width_min = float(width_min)
         clauses.append(f"(width_min = 0.1 OR width_min >= {width_min:.3f})")

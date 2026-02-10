@@ -71,8 +71,6 @@ SELECT
   (SELECT total_cost   FROM tot);
 """
 
-
-
 DIJKSTRA_SQL_WEIGHTED = """
 WITH route AS (
   SELECT * FROM pgr_dijkstra(
@@ -97,7 +95,6 @@ geom_path AS (
 SELECT ST_AsGeoJSON(geom), total_length, total_cost
 FROM geom_path;
 """
-
 
 DIJKSTRA_SQL_WEIGHTED_DETAILS = """
 WITH route AS (

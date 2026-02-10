@@ -3,6 +3,7 @@ import { useTheme } from "@emotion/react";
 import { useEffect, useState } from "react";
 
 import CustomIcon from "@/ui/CustomIcon";
+import MapGoButton from "@/ui/MapGoButton";
 
 import { useStore } from "@/store/useStore.jsx";
 
@@ -19,7 +20,6 @@ export default function Stats() {
     return (
         <>
             {/* Path length */}
-
             <Fade
                 in={Boolean(stats?.overview)}
                 timeout={{ enter: 250, exit: 200 }}
@@ -36,6 +36,10 @@ export default function Stats() {
                         pointerEvents: "none",
                         padding: theme.grid.spacing,
                         marginB: theme.grid.spacing,
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "space-between",
+                        alignItems: "flex-start",
                     }}
                 >
                     {stats &&
@@ -43,23 +47,38 @@ export default function Stats() {
                         [...Object.keys(stats.overview)].map((key) => {
                             const overview = stats.overview;
                             const labels = {};
+                            const inaccessible =
+                                alerts.error == "inaccessiblePath";
+
+                            const dist =
+                                key == "baseline"
+                                    ? overview[key].total_length
+                                    : `+ ${
+                                          overview[key].total_length -
+                                          overview["baseline"].total_length
+                                      }`;
+
+                            if (inaccessible && key != "baseline")
+                                return <> </>;
+
                             return (
                                 <Chip
                                     key={key}
                                     sx={{
                                         textAlign: "left",
-                                        textJustify: "left",
+                                        // textJustify: "left",
                                     }}
                                     label={`${
                                         key == "baseline"
                                             ? "Rapido"
                                             : "Accessibile"
-                                    }: ${overview[key].total_length} m`}
+                                    }: ${dist} m`}
                                 ></Chip>
                             );
                         })}
                 </Stack>
             </Fade>
+
             <Fade
                 in={Boolean(stats?.overview)}
                 timeout={{ enter: 250, exit: 200 }}
@@ -108,9 +127,9 @@ export default function Stats() {
                                         >
                                             <IconButton
                                                 variant={
-                                                    alerts[key].visible
-                                                        ? "mini"
-                                                        : "inverted-mini"
+                                                    !alerts[key].visible
+                                                        ? "inverted-mini"
+                                                        : "mini"
                                                 }
                                                 sx={{ zIndex: 1000 }}
                                                 onClick={() => {
@@ -131,7 +150,7 @@ export default function Stats() {
                                                                             .visible,
                                                                 },
                                                             },
-                                                        })
+                                                        }),
                                                     );
                                                 }}
                                             >

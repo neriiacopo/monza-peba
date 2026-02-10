@@ -1,19 +1,23 @@
-import "./style.css";
+import "@/style.css";
 
 import ReactDOM from "react-dom/client";
 const root = ReactDOM.createRoot(document.querySelector("#root"));
 import { ThemeProvider } from "@mui/material/styles";
-import theme from "./ui/theme.js";
+import theme from "@/ui/theme.js";
 
 import { useEffect, useState } from "react";
 
 import { CircularProgress } from "@mui/material";
-import App from "./App.jsx";
+import App from "@/App.jsx";
 
-import { useStore } from "./store/useStore.jsx";
-import { useCookieStore } from "./store/useCookieStore.jsx";
+import { preprocessGeocoder } from "@/lib/map.utils.js";
+import { useStore } from "@/store/useStore.jsx";
+import { useCookieStore } from "@/store/useCookieStore.jsx";
 
-import { buildSpatialIndex, buildSpatialIndex_new } from "@/lib/map.utils.js";
+import {
+    buildSpatialIndex,
+    buildSpatialIndexGeocoder,
+} from "@/lib/map.utils.js";
 
 const isMobile =
     /Mobi|Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent) ||
@@ -38,9 +42,9 @@ function Root() {
     }, []);
 
     const jsons = {
-        addresses: {
-            file: "./COMUNE_MONZA_Numerazione_Civica_Comunale.geojson",
-        },
+        // addresses: {
+        //     file: "./COMUNE_MONZA_Numerazione_Civica_Comunale.geojson",
+        // },
         geocoder: {
             file: "./geocoder_db.json",
         },
@@ -61,10 +65,9 @@ function Root() {
                             // addressesKIndex: addressesKIndex,
                         });
                     } else if (key === "geocoder") {
-                        // console.log(data);
-                        const addressesKIndex = buildSpatialIndex_new(data);
+                        const addressesKIndex = buildSpatialIndexGeocoder(data);
                         useStore.setState({
-                            [key]: data,
+                            [key]: preprocessGeocoder(data),
                             addressesKIndex: addressesKIndex,
                         });
                     } else {

@@ -1,6 +1,12 @@
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, Divider } from "@mui/material";
 
-export default function Section({ title, description, children }) {
+export default function Section({
+    theme,
+    title,
+    description,
+    children,
+    last = false,
+}) {
     return (
         <>
             <Box
@@ -22,6 +28,16 @@ export default function Section({ title, description, children }) {
                 </Typography>
             </Box>
             {children}
+            {!last && (
+                <Divider
+                    sx={{
+                        borderColor: theme.palette.primary.main,
+                        opacity: 0.65,
+                        mb: 1.5,
+                        width: "100%",
+                    }}
+                />
+            )}
         </>
     );
 }

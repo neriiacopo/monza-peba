@@ -21,7 +21,7 @@ export function normalizeParams(data) {
 
     // 3) crash, pali_luce, slope (already 0–1)
     ["crash", "pali_luce", "slope"].forEach((key) =>
-        out.push({ label: key, value: data[key] })
+        out.push({ label: key, value: data[key] }),
     );
 
     return out;
@@ -41,7 +41,7 @@ export function postprocessRoute(route, params) {
     if (!route || !route.features) return route;
     const costs = {};
 
-    // Add total lengtha
+    // Add total length
     for (const f of route.features) {
         const profile = f.properties.profile || "unknown";
         f.properties.total_length = Math.round(f.properties.total_length);
@@ -54,25 +54,40 @@ export function postprocessRoute(route, params) {
             ? "inaccessiblePath"
             : false;
 
-    // Check for Alerts
+    // Check for Alerts on Fastest
     const baseline = route.features.find(
-        (f) => f?.properties?.profile === "baseline"
+        (f) => f?.properties?.profile === "baseline",
     );
 
     const stepsAlerts =
         baseline.segments.filter((item) => item?.metadata?.steps === "STEPS") ||
         [];
 
-    // console.log("stepsAlerts", stepsAlerts, typeof stepsAlerts);
     const widthMinAlerts =
         baseline.segments.filter(
-            (item) => item?.metadata?.width_min < params.width_min
+            (item) =>
+                item?.metadata?.width_min < params.width_min &&
+                item?.metadata?.width_min > 0.3, // remove centerlines that are not a problem for fastest
         ) || [];
 
     const stairsAlerts =
         baseline.segments.filter(
-            (item) => item?.metadata?.steps === "STEP_STAIRS"
+            (item) => item?.metadata?.steps === "STEP_STAIRS",
         ) || [];
+
+    // Check for Alerts on Accessible - centerlines
+    const accessible = route.features.find(
+        (f) => f?.properties?.profile === "accessible",
+    );
+
+    let centerlineAlerts = [];
+
+    if (error === false) {
+        centerlineAlerts =
+            accessible.segments.filter(
+                (item) => item?.metadata?.width_min == 0.1,
+            ) || [];
+    }
 
     const stats = {
         overview: costs,
@@ -86,9 +101,22 @@ export function postprocessRoute(route, params) {
 
     const alerts = {
         error: error,
-        width_min: { segments: [...widthMinAlerts], visible: true },
-        steps: { segments: [...stepsAlerts], visible: true },
-        stairs: { segments: [...stairsAlerts], visible: true },
+        width_min: {
+            segments: [...widthMinAlerts],
+            visible: true,
+            label: "Marciapiede angusto",
+        },
+        steps: { segments: [...stepsAlerts], visible: true, label: "Gradino" },
+        stairs: {
+            segments: [...stairsAlerts],
+            visible: true,
+            label: "Scalinata",
+        },
+        centerline: {
+            segments: [...centerlineAlerts],
+            visible: true,
+            label: "Assenza marciapiede",
+        },
     };
 
     // console.log("postprocessRoute", { alerts, stats });

@@ -1,6 +1,13 @@
 // Route.jsx
 import { useEffect, useState } from "react";
-import { LayerGroup, GeoJSON, useMap, Pane, Polyline } from "react-leaflet";
+import {
+    LayerGroup,
+    GeoJSON,
+    useMap,
+    Pane,
+    Polyline,
+    FeatureGroup,
+} from "react-leaflet";
 
 import Alerts from "@/map/Alerts.jsx";
 import * as L from "leaflet";
@@ -12,11 +19,6 @@ export default function Route({ mainColor }) {
     const markers = useStore((s) => s.markers);
     const routeData = useStore((s) => s.route);
     const [baseLine, setBaseLine] = useState(null);
-    const [connections, setConnections] = useState([]);
-
-    useEffect(() => {
-        console.log("makrs", markers);
-    }, [markers]);
 
     useEffect(() => {
         if (!routeData || !routeData.features) {
@@ -25,7 +27,7 @@ export default function Route({ mainColor }) {
         }
         const baselineFeature =
             routeData.features.find(
-                (f) => f?.properties?.profile === "baseline"
+                (f) => f?.properties?.profile === "baseline",
             ) || null;
 
         setBaseLine(baselineFeature.segments);
@@ -34,11 +36,13 @@ export default function Route({ mainColor }) {
     if (!routeData || !routeData.features) return null;
 
     return (
-        <LayerGroup>
+        <>
             {routeData.features.map((f, index) => {
-                console.log("route feature", f);
                 return (
-                    <LayerGroup key={index}>
+                    <FeatureGroup
+                        key={index}
+                        zIndex={500}
+                    >
                         <GeoJSON
                             // key={index}
                             data={f}
@@ -52,15 +56,16 @@ export default function Route({ mainColor }) {
                                 lineCap: "round",
                                 lineJoin: "round",
                             }}
+                            renderer={L.canvas()}
                         />
                         {f.properties.profile === "baseline" &&
                             f.endpoints?.origin &&
                             f.endpoints?.destination &&
                             Object.keys(f.endpoints).map((k, i) => {
-                                console.log(markers, "markers", "k", k, "i", i);
                                 const mId = k === "origin" ? 0 : 1;
                                 return (
                                     <Polyline
+                                        key={i}
                                         positions={[
                                             [
                                                 ...f.endpoints[k].geometry
@@ -68,10 +73,10 @@ export default function Route({ mainColor }) {
                                             ].reverse(),
                                             [
                                                 markers.find(
-                                                    (m) => m.idx == mId
+                                                    (m) => m.idx == mId,
                                                 ).coordinates.lat,
                                                 markers.find(
-                                                    (m) => m.idx == mId
+                                                    (m) => m.idx == mId,
                                                 ).coordinates.lng,
                                             ],
                                         ]}
@@ -85,7 +90,7 @@ export default function Route({ mainColor }) {
                                     />
                                 );
                             })}
-                    </LayerGroup>
+                    </FeatureGroup>
                 );
             })}
             <Pane
@@ -97,6 +102,6 @@ export default function Route({ mainColor }) {
                     mainColor={mainColor}
                 />
             </Pane>
-        </LayerGroup>
+        </>
     );
 }

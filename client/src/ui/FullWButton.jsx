@@ -8,17 +8,17 @@ export default function FullWButton({ label, ...props }) {
         <Button
             fullWidth
             onClick={props?.onClick}
-            variant="contained"
+            variant={props?.variant || "contained"}
             disabled={props?.disabled}
             sx={{
                 borderRadius: "999px",
                 py: 1.25,
                 textTransform: "none",
                 fontWeight: 600,
-                bgcolor: theme.palette.primary.main,
+                // bgcolor: theme.palette.primary.main,
                 boxShadow: "none",
                 "&:hover": {
-                    bgcolor: theme.palette.primary.main,
+                    // bgcolor: theme.palette.primary.main,
                     opacity: 0.92,
                     boxShadow: "none",
                 },

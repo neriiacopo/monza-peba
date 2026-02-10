@@ -1,14 +1,15 @@
-import { Button, IconButton, Stack } from "@mui/material";
+import { IconButton, Stack } from "@mui/material";
 
-import ShadowBox from "./ShadowBox";
 import Basemap from "../map/Basemap";
-import VizSelection from "./VizSelection";
-import MainButton from "./MainButton";
 import Stats from "./Stats";
 
-import FullscreenIcon from "@mui/icons-material/Fullscreen";
-import OpenInFullIcon from "@mui/icons-material/OpenInFull";
-import GpsFixedIcon from "@mui/icons-material/GpsFixed";
+import MapGoButton from "./MapGoButton";
+
+import OpenFullScreenIcon from "@mui/icons-material/OpenInFull";
+import CloseFullscreenIcon from "@mui/icons-material/CloseFullscreen";
+
+import GpsActivateIcon from "@mui/icons-material/GpsFixed";
+import GpsDisableIcon from "@mui/icons-material/LocationDisabled";
 
 import { useStore } from "@/store/useStore";
 
@@ -17,10 +18,11 @@ export default function MapArea({
     initMap,
     setExpand,
     expand,
+    interactive = true,
     ...props
 }) {
-    const pathOptions = ["Distanza", "Pendenza", "Larghezza", "Incidenti"];
     const toggleGps = useStore((s) => s.toggleGps);
+    const activeGps = useStore((s) => s.activeGps);
 
     return (
         <>
@@ -50,7 +52,7 @@ export default function MapArea({
                     }}
                     onClick={() => setExpand((expand) => !expand)}
                 >
-                    <OpenInFullIcon />
+                    {expand ? <CloseFullscreenIcon /> : <OpenFullScreenIcon />}
                 </IconButton>
                 <IconButton
                     variant={"mini"}
@@ -59,9 +61,11 @@ export default function MapArea({
                     }}
                     onClick={() => toggleGps()}
                 >
-                    <GpsFixedIcon />
+                    {activeGps ? <GpsDisableIcon /> : <GpsActivateIcon />}
                 </IconButton>
             </Stack>
+
+            <MapGoButton isMobile={true} />
 
             <Stats />
 
@@ -69,17 +73,9 @@ export default function MapArea({
                 <Basemap
                     mainColor={theme.palette.primary.main}
                     expand={expand}
+                    interactive={interactive}
                 />
             )}
-            {/* <MainButton
-                sx={{
-                    position: "absolute",
-                    bottom: theme.grid.spacing,
-                    width: "50%",
-                    zIndex: 100,
-                }}
-                label="Segnala un Problema"
-            /> */}
         </>
     );
 }

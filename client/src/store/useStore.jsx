@@ -1,17 +1,22 @@
 import { create } from "zustand";
 
-import { profiles, profileList } from "@/lib/profiles.config.js";
-import { getRoute } from "@/lib/api.js";
+import { profileList } from "@/lib/profiles.config.js";
+import { getRoute, sendReport, sendGPS } from "@/lib/api.js";
 import { postprocessRoute } from "@/lib/data.utils";
+
+import { useCookieStore } from "./useCookieStore";
 
 export let useStore = create((set, get) => ({
     prevSession: null,
     selectedProfile: null,
     prevProfile: null,
     selectedProfileId: 0,
-    // mainColor: "#000000",
+    mainColor: "#000000",
     stats: {},
     alerts: {},
+    isRouteLoading: false,
+
+    pathGPS: [],
 
     bbox: null,
     page: "landing",
@@ -31,25 +36,41 @@ export let useStore = create((set, get) => ({
         set({ profile: nextProfile, mainColor: nextColor });
     },
 
-    setMarkers: (newMarker, idx = get().markers.length >= 1 ? 1 : 0) => {
+    // setMarkers: (newMarker, idx = get().markers.length >= 1 ? 1 : 0) => {
+    setMarkers: (newMarker, idx = null) => {
         const prevMarkers = get().markers;
         const calcRoute = get().calcRoute;
 
         let newMarkers = [];
 
+        // // Keep origin fixed at click
+        // if (idx == null ) {
+        //     newMarker.idx = prevMarkers.length < 2 ? 1 : 0;
+        //     newMarkers =
+        //         prevMarkers.length < 2
+        //             ? [...prevMarkers, newMarker]
+        //             : [newMarker];
+        // } else {
+        //     newMarker.idx = idx;
+        //     prevMarkers[idx] = { ...newMarker };
+        //     newMarkers = [...prevMarkers];
+        // }
+
+        // Origin gets updated at 3rd click
         if (idx == null) {
-            newMarker.idx = prevMarkers.length < 2 ? 1 : 0;
-            newMarkers =
-                prevMarkers.length < 2
-                    ? [...prevMarkers, newMarker]
-                    : [newMarker];
+            const newIdx = prevMarkers.length % 2;
+            if (newIdx == 0) {
+                newMarkers = [{ ...newMarker, idx: newIdx }];
+            } else {
+                newMarkers = [...prevMarkers, { ...newMarker, idx: newIdx }];
+            }
         } else {
             newMarker.idx = idx;
             prevMarkers[idx] = { ...newMarker };
             newMarkers = [...prevMarkers];
         }
+
         set({ markers: newMarkers, route: null, stats: {}, alerts: {} });
-        // console.log("newMarkers", newMarkers);
         calcRoute(newMarkers);
     },
 
@@ -57,19 +78,11 @@ export let useStore = create((set, get) => ({
     modalCookies: false,
     setModal: (modal) => set({ modal }),
 
-    // setProfile: (index) => {
-    //     set(() => ({
-    //         selectedProfile: profileList[index],
-    //         selectedProfileId: index,
-    //         mainColor: profileList[index].color,
-    //     }));
-    // },
-
     setProfile: (profileData) => {
         set(() => ({
             selectedProfile: profileData,
-            selectedProfileId: profileData.id,
-            mainColor: profileData.color,
+            selectedProfileId: profileData?.id || 0,
+            mainColor: profileData?.color || "#000000",
         }));
     },
 
@@ -79,10 +92,13 @@ export let useStore = create((set, get) => ({
     },
 
     calcRoute: async (markers) => {
+        if (markers.length == 2) {
+            set({ isRouteLoading: true });
+        }
         const { selectedProfile, setModal } = get();
         const params = selectedProfile.params;
 
-        set({ route: null });
+        const clientId = useCookieStore.getState().clientId;
 
         if (markers.length == 2) {
             const locs = markers.map((m) => ({
@@ -94,16 +110,24 @@ export let useStore = create((set, get) => ({
                 origin: locs[0],
                 destination: locs[1],
                 params: params,
+                metadata: {
+                    clientId: clientId,
+                    profileId: selectedProfile.id,
+                    // custom: selectedProfile.custom,
+                },
             });
 
             const features = route.features;
             const { alerts, stats } = postprocessRoute(route, params);
             setModal(alerts.error);
 
+            console.log("route", route);
+
             set({
                 route,
                 stats: stats,
                 alerts: alerts,
+                isRouteLoading: false,
             });
         }
     },
@@ -113,6 +137,7 @@ export let useStore = create((set, get) => ({
             page: "landing",
             selectedProfile: null,
             selectedProfileId: null,
+            prevProfile: null,
             mainColor: null,
             markers: [],
             route: null,
@@ -124,6 +149,7 @@ export let useStore = create((set, get) => ({
     setMap: (map) => set({ map }),
 
     activeGps: false,
+    followGps: false,
     refreshBoundsCounter: 1,
     refreshBounds: () => {
         const current = get().refreshBoundsCounter;
@@ -133,5 +159,75 @@ export let useStore = create((set, get) => ({
     toggleGps: () => {
         const current = get().activeGps;
         set({ activeGps: !current });
+    },
+
+    startPath: () => {
+        const route = get().route;
+
+        // Start journey log
+        sendGPS({
+            callId: route.id,
+            status: "started",
+        });
+
+        set({
+            activeGps: true,
+            rotationMap: true,
+            followGps: true,
+            pathGPS: [],
+        });
+    },
+
+    updatePathGPS: (current) => {
+        const pathGPS = get().pathGPS;
+        console.log("Updating GPS path with:", current, "pathGPS:", pathGPS);
+        set({ pathGPS: [...pathGPS, current] });
+    },
+
+    endPath: () => {
+        const route = get().route;
+        const pathGPS = get().pathGPS;
+
+        const permissions = useCookieStore.getState().permissions;
+        console.log(
+            "Ending GPS path. Permissions:",
+            permissions,
+            "Path to send:",
+            pathGPS,
+        );
+
+        sendGPS({
+            callId: route.id,
+            status: "completed",
+            path:
+                permissions.gps.accepted && pathGPS.length > 2 ? pathGPS : null,
+        });
+
+        set({
+            // activeGps: false,
+            rotationMap: false,
+            followGps: false,
+            modal: "evaluateApp",
+        });
+    },
+
+    onSubmitRating(rating) {
+        const route = get().route;
+
+        sendGPS({
+            callId: route.id,
+            status: "completed",
+            rating,
+        });
+    },
+
+    onSubmitReport: (report) => {
+        const clientId = useCookieStore.getState().clientId;
+
+        sendReport({ ...report, clientId });
+        set({
+            modal: "reportSubmitted",
+            page: "map",
+        });
     },
 }));

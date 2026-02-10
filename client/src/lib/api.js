@@ -4,7 +4,7 @@ const DEFAULT_HEADERS = { "Content-Type": "application/json" };
 
 async function request(
     path,
-    { method = "GET", headers = {}, body, signal } = {}
+    { method = "GET", headers = {}, body, signal } = {},
 ) {
     const res = await fetch(`${API_BASE}${path}`, {
         method,
@@ -35,9 +35,8 @@ export const api = {
 };
 
 //////////////////////////
-export function getRoute({ origin, destination, params }) {
-    const res = api.post("/route", { origin, destination, params });
-
+export function getRoute({ origin, destination, params, metadata }) {
+    const res = api.post("/route", { origin, destination, params, metadata });
     return res;
 }
 
@@ -47,4 +46,32 @@ export function getBbox({}) {
 
 export function getNetwork() {
     return api.get("/network", {});
+}
+
+export function sendReport(report) {
+    const payload = {
+        ...report,
+        geolocation: {
+            lat: parseFloat(report.geolocation.lat),
+            lon: parseFloat(report.geolocation.lng), // Convert lng -> lon for db
+        },
+    };
+
+    delete payload.geolocation.lng;
+
+    return api.post("/report", payload);
+}
+
+export function sendGPS({ callId, status = null, path = null, rating = null }) {
+    const payload = {
+        callId,
+        ...(path &&
+            path.length > 0 && {
+                path: path.map((p) => [p[1], p[0]]),
+            }),
+        ...(status && { status }),
+        ...(rating !== null && { rating }),
+    };
+
+    return api.post("/telemetry", payload);
 }

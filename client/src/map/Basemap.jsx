@@ -1,50 +1,47 @@
 import { useStore } from "@/store/useStore.jsx";
-
 import { useTheme } from "@mui/material";
-
-import { getRoute } from "@/lib/api";
 import * as L from "leaflet";
 import "leaflet/dist/leaflet.css";
-// Import Marker and useMapEvents
+
+import "leaflet-rotate";
+
 import {
     MapContainer,
     TileLayer,
-    Pane,
-    useMapEvents,
     GeoJSON,
-    Rectangle,
     useMap,
+    LayerGroup,
+    FeatureGroup,
 } from "react-leaflet";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
+
+import { useDeviceOrientation } from "./useDeviceOrientation";
 
 import AddOriginDestination from "./AddOriginDestination";
-import CustomIconMarker from "./CustomIconMarker";
-import FollowGPS from "./FollowGPS";
+import GPSMarker from "./GPSMarker";
 import Route from "./Route";
 import Pois from "./Pois";
 
-import { zoomToAll } from "@/lib/map.utils";
+import MarkerTest from "./MarkerTest";
 
+import { zoomToAllLayer } from "@/lib/map.utils";
 import "./map.css";
 
-export default function Basemap({ mainColor, report = false, expand }) {
+export default function Basemap({
+    mainColor,
+    report = false,
+    expand,
+    interactive = true,
+    currentHeading = 0,
+}) {
     const theme = useTheme();
     const mapRef = useRef();
     const routeRef = useRef();
-    const overlayRef = useRef();
     const markers = useStore((s) => s.markers);
     const route = useStore((s) => s.route);
     const boundary = useStore((s) => s.boundary);
-
-    // const [maxBounds, setMaxBounds] = useState(null);
-
-    // Set map bounds when boundary changes
-    // useEffect(() => {
-    //     if (boundary) {
-    //         const bounds = L.geoJSON(boundary).getBounds();
-    //         setMaxBounds(bounds.pad(0.4));
-    //     }
-    // }, [boundary]);
+    const { heading, isTracking, requestPermission } = useDeviceOrientation();
+    const followGps = useStore((s) => s.followGps);
 
     useEffect(() => {
         const map = mapRef.current;
@@ -58,7 +55,7 @@ export default function Basemap({ mainColor, report = false, expand }) {
                 markers.length !== 1 ||
                 route
             ) {
-                zoomToAll(map);
+                zoomToAllLayer(map);
             }
         }, 500);
     }, [route, markers, report]);
@@ -76,124 +73,98 @@ export default function Basemap({ mainColor, report = false, expand }) {
                     height: "100vh",
                     backgroundColor: mainColor,
                     mixBlendMode: "lighten",
-                    pointerEvents: "none",
-                    zIndex: 1000,
+                    pointerEvents: interactive ? "none" : "auto",
+                    zIndex: 12,
                 }}
             ></div>
             <MapContainer
+                id="leaflet-map"
+                rotate={true}
+                touchRotate={false}
+                rotateControl={false}
+                bearing={0}
+                // --------------------------------
                 zoomSnap={0.1}
                 zoom={14}
                 center={monzaCentroid}
                 minZoom={13}
                 maxZoom={18}
-                // maxBounds={maxBounds}
-                // bounds={bbox}
                 zoomControl={false}
-                // webGL={true}
                 ref={mapRef}
                 style={{
-                    zIndex: 1,
+                    zIndex: 0,
                     backgroundColor: mainColor,
-                    cursor: "not-allowed !important",
                 }}
                 className={"map-container"}
             >
-                <Pane
-                    name="basemap"
+                <RotationHandler
+                    heading={followGps ? heading : 0}
+                    isTracking={followGps}
+                />
+
+                <GeoJSON
+                    name="boundary"
+                    data={boundary}
+                    zIndex={0}
                     style={{
-                        zIndex: 0,
+                        color: mainColor,
+                        weight: 2,
+                        dashArray: "1,5",
+                        lineCap: "round",
+                        lineJoin: "round",
+                        fillOpacity: 0,
+                        fillColor: mainColor,
                     }}
-                >
-                    <GeoJSON
-                        data={boundary}
-                        style={{
-                            color: mainColor,
-                            weight: 2,
-                            dashArray: "1,5",
-                            lineCap: "round",
-                            lineJoin: "round",
-                            fillOpacity: 0,
-                            fillColor: mainColor,
-                        }}
-                    />
-                    <TileLayer
-                        url="https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"
-                        attribution='&copy; <a href="https://carto.com/">CARTO</a>'
-                    />
-                </Pane>
-                {/* <Pane
-                    name="color-overlay"
-                    style={{
-                        zIndex: 1,
-                        mixBlendMode: "lighten",
-                        transform: "translateZ(0)",
-                    }}
-                >
-                    <Rectangle
-                        key={overlayRef}
-                        bounds={[
-                            [-90, -180],
-                            [90, 180],
-                        ]}
-                        pathOptions={{
-                            fillOpacity: 1,
-                            color: mainColor,
-                        }}
-                    />
-                </Pane> */}
+                />
+                <TileLayer
+                    zIndex={0}
+                    id="tiles"
+                    url="https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"
+                    attribution='&copy; <a href="https://carto.com/">CARTO</a>'
+                    crossOrigin
+                />
 
                 <>
                     {route && (
-                        <Pane
-                            name="route"
-                            style={{ zIndex: 500 }}
-                        >
-                            <Route
-                                ref={routeRef}
-                                routeData={route}
-                                mainColor={mainColor}
-                            />
-                        </Pane>
+                        <Route
+                            ref={routeRef}
+                            routeData={route}
+                            mainColor={mainColor}
+                        />
                     )}
-                    <Pane
-                        name="markers"
-                        style={{ zIndex: 600 }}
-                    >
+
+                    <FeatureGroup zIndex={700}>
                         <AddOriginDestination
                             mapRef={mapRef}
                             mainColor={mainColor}
                         />
-                    </Pane>
+                    </FeatureGroup>
                 </>
-                {/* <RegisterMap /> */}
-                <Pane
-                    name="pois"
-                    style={{ zIndex: 600 }}
+                <LayerGroup
+                    id="pois"
+                    style={{ zIndex: 0 }}
                 >
                     <Pois
                         minZoom={theme.isMobile ? 17 : 15}
                         maxZoom={18}
                         mainColor={mainColor}
                     />
-                </Pane>
+                </LayerGroup>
                 <ResizeHandler trigger={expand} />
-                <FollowGPS color={mainColor} />
+                <GPSMarker color={mainColor} />
+
+                {/* {route && (
+                    <GPSMarkerDummy
+                        color={mainColor}
+                        route={route?.features[1]}
+                    />
+                )} */}
+
+                {/* <MarkerTest /> */}
             </MapContainer>
         </>
     );
 }
-
-// function RegisterMap() {
-//     const map = useMap();
-//     const setMap = useStore((s) => s.setMap);
-
-//     useEffect(() => {
-//         console.log("m", map);
-//         setMap(map);
-//     }, [map]);
-
-//     return null;
-// }
 
 function ResizeHandler({ trigger }) {
     const map = useMap();
@@ -202,9 +173,21 @@ function ResizeHandler({ trigger }) {
         if (!map) return;
         setTimeout(() => {
             map.invalidateSize();
-            zoomToAll(map);
+            zoomToAllLayer(map);
         }, 0);
     }, [trigger]);
+
+    return null;
+}
+
+function RotationHandler({ heading, isTracking }) {
+    const map = useMap();
+
+    useEffect(() => {
+        if (map && map.setBearing) {
+            map.setBearing(heading);
+        }
+    }, [map, heading, isTracking]);
 
     return null;
 }

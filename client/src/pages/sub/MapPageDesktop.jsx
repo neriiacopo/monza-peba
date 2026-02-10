@@ -5,7 +5,7 @@ import { getBbox } from "@/lib/api";
 
 import AddressInputAuto from "@/ui/AddressInputAuto.jsx";
 import Stats from "@/ui/Stats.jsx";
-
+import MapGoButton from "@/ui/MapGoButton";
 import ShadowBox from "@/ui/ShadowBox";
 
 export default function MapPage({ theme, ...props }) {
@@ -80,6 +80,7 @@ export default function MapPage({ theme, ...props }) {
                 />
             </Box>
 
+            <MapGoButton isMobile={false} />
             <Box sx={{ flexGrow: 1, position: "relative", width: "100%" }}>
                 <Stats />
             </Box>
