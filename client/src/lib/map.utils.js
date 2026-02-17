@@ -114,8 +114,6 @@ export function findNearestPoint(spatialIndex, lng, lat) {
 
     const nearest = points[idx];
 
-    console.log("nearest", nearest);
-
     // Double Checking proximity
     // let results = geokdbush.around(index, lng, lat, 10);
     // console.log("Nearby points:", results);
@@ -282,6 +280,7 @@ export async function screenshotMapById(
 
     try {
         const dataUrl = await toPng(node, {
+            skipFonts: true, // firefox bugfix:
             cacheBust: true,
             pixelRatio, // 1 = fast; 2 = sharper
             fetchRequestInit: { mode: "cors" },

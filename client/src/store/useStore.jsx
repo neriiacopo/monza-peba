@@ -121,8 +121,6 @@ export let useStore = create((set, get) => ({
             const { alerts, stats } = postprocessRoute(route, params);
             setModal(alerts.error);
 
-            console.log("route", route);
-
             set({
                 route,
                 stats: stats,

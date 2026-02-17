@@ -1,18 +1,8 @@
 import { createTheme } from "@mui/material/styles";
-import { alpha, darken, lighten } from "@mui/material/styles";
-import { profiles, profileList } from "@/lib/profiles.config";
-
-// const isMobile =
-//     /Mobi|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent) ||
-//     (typeof window !== "undefined" &&
-//         window.matchMedia &&
-//         window.matchMedia("(pointer: coarse)").matches);
+import { darken, lighten } from "@mui/material/styles";
 
 const isMobile =
     typeof window !== "undefined" &&
-    // 1. Check for "Mobi" which covers most phone browsers (including Android)
-    // 2. Explicitly include iPhone and iPod
-    // 3. Explicitly exclude iPad (just in case)
     /Mobi|iPhone|iPod|Windows Phone/i.test(navigator.userAgent) &&
     !/iPad/i.test(navigator.userAgent);
 

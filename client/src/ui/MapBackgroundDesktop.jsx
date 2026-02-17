@@ -26,7 +26,6 @@ export default function MapBackgroundDesktop({ theme, ...props }) {
         <>
             {/* Map Area */}
             <Box
-                focus
                 sx={{
                     overflow: "hidden",
                     position: "absolute",

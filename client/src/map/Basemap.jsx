@@ -79,7 +79,7 @@ export default function Basemap({
             ></div>
             <MapContainer
                 id="leaflet-map"
-                rotate={true}
+                rotate={false}
                 touchRotate={false}
                 rotateControl={false}
                 bearing={0}

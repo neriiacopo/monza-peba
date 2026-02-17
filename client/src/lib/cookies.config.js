@@ -1,5 +1,3 @@
-import { color } from "echarts";
-
 export const cookiesTemplate = {
     privacy: {
         accepted: false,

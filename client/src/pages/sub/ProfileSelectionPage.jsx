@@ -60,8 +60,6 @@ export default function ProfileSelectionPage({ theme, ...props }) {
                 custom: customFlag,
             };
 
-            console.log("acceptedProfile:", acceptedProfile);
-
             // overwrite prevProfile
             useStore.setState({
                 prevProfile: acceptedProfile,

@@ -19,13 +19,11 @@ export default function GPSMarker({ type, color }) {
 
     const lastStoredPointRef = useRef(null);
 
-    const checkInside = false;
+    const checkInside = true;
 
     const monzaCentroid = [45.5846, 9.2733];
 
-    useEffect(() => {
-        console.log(path);
-    }, [path]);
+    useEffect(() => {}, [path]);
 
     useEffect(() => {
         let watchId;
