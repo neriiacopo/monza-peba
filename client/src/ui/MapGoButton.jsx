@@ -2,12 +2,11 @@ import { Stack, Fade } from "@mui/material";
 import { useTheme } from "@emotion/react";
 
 import { useStore } from "@/store/useStore.jsx";
-import { screenshotMapById } from "@/lib/map.utils.js";
 
 import FullWButton from "@/ui/FullWButton";
-import { useState } from "react";
 
 export default function MapGoButton({ isMobile = false }) {
+    const downloadMap = useStore((s) => s.downloadMap);
     const startPath = useStore((s) => s.startPath);
     const endPath = useStore((s) => s.endPath);
     const theme = useTheme();
@@ -23,10 +22,7 @@ export default function MapGoButton({ isMobile = false }) {
         desktop: {
             label: "Stampa il percorso",
             variant: "contained",
-            fn: () =>
-                screenshotMapById("leaflet-map", {
-                    pixelRatio: 1,
-                }),
+            fn: downloadMap,
         },
     };
 

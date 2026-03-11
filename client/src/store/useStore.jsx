@@ -3,6 +3,7 @@ import { create } from "zustand";
 import { profileList } from "@/lib/profiles.config.js";
 import { getRoute, sendReport, sendGPS } from "@/lib/api.js";
 import { postprocessRoute } from "@/lib/data.utils";
+import { screenshotMapById } from "@/lib/map.utils.js";
 
 import { useCookieStore } from "./useCookieStore";
 
@@ -159,6 +160,19 @@ export let useStore = create((set, get) => ({
         set({ activeGps: !current });
     },
 
+    downloadMap: () => {
+        const route = get().route;
+
+        sendGPS({
+            callId: route.id,
+            status: "downloaded",
+        });
+
+        screenshotMapById("leaflet-map", {
+            pixelRatio: 1,
+        });
+    },
+
     startPath: () => {
         const route = get().route;
 
@@ -178,7 +192,6 @@ export let useStore = create((set, get) => ({
 
     updatePathGPS: (current) => {
         const pathGPS = get().pathGPS;
-        console.log("Updating GPS path with:", current, "pathGPS:", pathGPS);
         set({ pathGPS: [...pathGPS, current] });
     },
 
@@ -187,12 +200,6 @@ export let useStore = create((set, get) => ({
         const pathGPS = get().pathGPS;
 
         const permissions = useCookieStore.getState().permissions;
-        console.log(
-            "Ending GPS path. Permissions:",
-            permissions,
-            "Path to send:",
-            pathGPS,
-        );
 
         sendGPS({
             callId: route.id,
