@@ -22,8 +22,6 @@ import GPSMarker from "./GPSMarker";
 import Route from "./Route";
 import Pois from "./Pois";
 
-import MarkerTest from "./MarkerTest";
-
 import { zoomToAllLayer } from "@/lib/map.utils";
 import "./map.css";
 

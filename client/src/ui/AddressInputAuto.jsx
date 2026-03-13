@@ -8,15 +8,17 @@ import {
     Stack,
     Box,
     Fade,
-    Collapse,
+    Divider,
 } from "@mui/material";
 import ShadowBox from "./ShadowBox.jsx";
+import { checkGpsPositionWithinBoundary } from "@/lib/map.utils.js";
 import { useStore } from "@/store/useStore.jsx";
 import { formatAddress } from "@/lib/data.utils.js";
 
 import AccessibleIcon from "@mui/icons-material/Accessible";
 import NotAccessibleIcon from "@mui/icons-material/NotAccessible";
 import WheelchairPickupIcon from "@mui/icons-material/WheelchairPickup";
+import GpsActivateIcon from "@mui/icons-material/GpsFixed";
 
 export default function AddressInputAuto({
     theme,
@@ -32,31 +34,44 @@ export default function AddressInputAuto({
     const [inputValue, setInputValue] = useState("");
     const [open, setOpen] = useState(false);
     const markers = useStore((state) => state.markers);
-    const map = useStore((s) => s.map);
     const portalRef = useRef(null);
-
     const followGps = useStore((s) => s.followGps);
 
     const handleHideKeyboard = () => {
-        inputRef.current.blur();
+        inputRef.current?.blur();
     };
 
-    const options = useMemo(
-        () =>
-            addresses.map((feature, idx) => ({
-                address: formatAddress(feature),
-                value: feature.coordinates,
-                feature: feature,
-            })),
-        [addresses],
-    );
+    const options = useMemo(() => {
+        const results = addresses.map((feature) => ({
+            address: formatAddress(feature),
+            value: feature.coordinates,
+            feature: feature,
+        }));
+
+        // Prepend gps position
+        return [
+            {
+                isCurrentLocation: true,
+                address: "Posizione attuale",
+                value: null,
+                feature: {
+                    wheelchair: null,
+                    coordinates: {
+                        lng: null,
+                        lat: null,
+                    },
+                    name: "Posizione attuale",
+                },
+            },
+            ...results,
+        ];
+    }, [addresses]);
 
     useEffect(() => {
         if (markers.length === 0 || markers[idx] == null) {
             setValue(null);
             setInputValue("");
         } else {
-            // if (!markers[idx]) return;
             setInputValue(markers[idx]?.address);
             setValue({
                 address: markers[idx]?.address,
@@ -64,18 +79,25 @@ export default function AddressInputAuto({
                 feature: markers[idx]?.feature,
             });
         }
-    }, [markers]);
+    }, [markers, idx]);
 
-    const filterOptions = createFilterOptions({
-        limit: 10,
-        ignoreCase: true,
-        trim: true,
-    });
+    const filterOptions = (options, params) => {
+        const defaultFilter = createFilterOptions({
+            limit: 10,
+            ignoreCase: true,
+            trim: true,
+        });
+        const filtered = defaultFilter(
+            options.filter((opt) => !opt.isCurrentLocation),
+            params,
+        );
+
+        const currentLocOption = options.find((opt) => opt.isCurrentLocation);
+        return [currentLocOption, ...filtered];
+    };
 
     useEffect(() => {
-        if (!open) {
-            handleHideKeyboard();
-        }
+        if (!open) handleHideKeyboard();
     }, [open]);
 
     return (
@@ -83,7 +105,6 @@ export default function AddressInputAuto({
             outlined={false}
             sx={{
                 height: `${theme.grid.units.h}px`,
-                // marginY: theme.grid.spacing,
                 display: "flex",
                 flexDirection: "row",
                 alignItems: "center",
@@ -98,52 +119,88 @@ export default function AddressInputAuto({
             </IconButton>
 
             <ShadowBox
-                // focus
-
                 sx={{
                     maxHeight: `calc(${theme.grid.units.h}px - ${theme.grid.spacing})`,
                     marginLeft: theme.grid.spacing,
-                    // borderRadius: theme.brdRad,
                     borderRadius: 9999,
                     display: "flex",
                     alignItems: "center",
                     pointerEvents: "auto",
+                    width: "100%",
                 }}
             >
                 <Autocomplete
                     value={value}
                     disableClearable
                     disabled={followGps}
+                    onFocus={() => setOpen(true)}
+                    onBlur={() => setOpen(false)}
                     onChange={(e, newValue) => {
-                        setValue(newValue);
-                        setMarkers(
-                            {
-                                coordinates: newValue.value,
-                                address: newValue.address,
-                                key: Date.now(),
-                                feature: newValue.feature,
-                                idx: idx,
-                                sender: "textInput",
-                            },
-                            idx,
-                        );
+                        if (!newValue) return;
 
-                        setOpen(false);
+                        const updateSelection = (finalValue) => {
+                            setValue(finalValue);
+                            setMarkers(
+                                {
+                                    coordinates: finalValue.value,
+                                    address: finalValue.address,
+                                    key: Date.now(),
+                                    feature: finalValue.feature,
+                                    idx: idx,
+                                    sender: "textInput",
+                                },
+                                idx,
+                            );
+                            setOpen(false);
+                        };
+
+                        if (newValue.isCurrentLocation) {
+                            checkGpsPositionWithinBoundary()
+                                .then((pos) => {
+                                    if (!pos) {
+                                        setOpen(false);
+                                        return;
+                                    }
+
+                                    const coords = {
+                                        lat: pos.coords.latitude,
+                                        lng: pos.coords.longitude,
+                                    };
+
+                                    updateSelection({
+                                        ...newValue,
+                                        value: coords,
+                                        feature: {
+                                            ...newValue.feature,
+                                            coordinates: coords,
+                                        },
+                                    });
+                                })
+                                .catch((err) => {
+                                    console.error("Chain failed:", err);
+                                    setOpen(false);
+                                });
+                        } else {
+                            updateSelection(newValue);
+                        }
                     }}
                     inputValue={inputValue}
-                    onInputChange={(e, newInputValue) => {
+                    onInputChange={(e, newInputValue, reason) => {
                         setInputValue(newInputValue);
-                        setOpen(newInputValue.length > 0);
+                        if (reason === "input" || reason === "reset") {
+                            setOpen(true);
+                        }
                     }}
                     options={options}
                     filterOptions={filterOptions}
                     getOptionLabel={(opt) => opt?.address || ""}
                     open={open}
-                    sx={{
-                        width: "100%",
-                    }}
+                    sx={{ width: "100%" }}
+                    renderOption={(props, option) =>
+                        renderLabelIcons(props, option)
+                    }
                     renderInput={(params) =>
-                        labelAccessibility(params, placeholder, value, inputRef)
+                        inputLabelIcons(params, placeholder, value, inputRef)
                     }
                     slotProps={{
                         popper: {
@@ -166,14 +223,49 @@ export default function AddressInputAuto({
                             zIndex: -1,
                             boxShadow: `0 2px 6px ${theme.palette.primary.main}55`,
                         }}
-                    ></Box>
+                    />
                 </Fade>
             </ShadowBox>
         </ShadowBox>
     );
 }
 
-function labelAccessibility(params, placeholder, value, inputRef) {
+function renderLabelIcons(props, option) {
+    return (
+        <Box
+            component="li"
+            {...props}
+            key={option.address + option.value}
+        >
+            <Stack
+                direction="column"
+                sx={{ width: "100%" }}
+            >
+                <Stack
+                    direction="row"
+                    alignItems="center"
+                    spacing={1}
+                    sx={{
+                        justifyContent: "space-between",
+                    }}
+                >
+                    <Typography>{option.address}</Typography>
+                    {option.isCurrentLocation && <GpsActivateIcon />}
+                    {option?.feature && option.feature?.wheelchair && (
+                        <PickAccessibilityIcon
+                            accessibility={option.feature?.wheelchair}
+                        />
+                    )}
+                </Stack>
+                {option.isCurrentLocation && (
+                    <Divider sx={{ mt: 1, mb: -1, width: "100%" }} />
+                )}
+            </Stack>
+        </Box>
+    );
+}
+
+function inputLabelIcons(params, placeholder, value, inputRef) {
     return (
         <Stack
             direction="row"
@@ -196,18 +288,28 @@ function labelAccessibility(params, placeholder, value, inputRef) {
                             right: 0,
                         }}
                     >
-                        {value.feature?.wheelchair == "yes" ? (
-                            <AccessibleIcon />
-                        ) : value.feature?.wheelchair == "no" ? (
-                            <NotAccessibleIcon />
-                        ) : value.feature?.wheelchair == "limited" ? (
-                            <WheelchairPickupIcon />
-                        ) : (
-                            <></>
-                        )}
+                        <PickAccessibilityIcon
+                            accessibility={value.feature?.wheelchair}
+                        />
                     </IconButton>
                 </>
             )}
         </Stack>
+    );
+}
+
+function PickAccessibilityIcon({ accessibility }) {
+    return (
+        <>
+            {accessibility == "yes" ? (
+                <AccessibleIcon />
+            ) : accessibility == "no" ? (
+                <NotAccessibleIcon />
+            ) : accessibility == "limited" ? (
+                <WheelchairPickupIcon />
+            ) : (
+                <></>
+            )}
+        </>
     );
 }

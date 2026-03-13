@@ -1,6 +1,9 @@
 import KDBush from "kdbush";
 import * as geokdbush from "geokdbush";
 import * as L from "leaflet";
+import { point, booleanPointInPolygon } from "@turf/turf";
+
+import { useStore } from "../store/useStore";
 
 export function preprocessGeocoder(data) {
     const points = data.map((item, i) => {
@@ -307,4 +310,35 @@ export function getMiddlePoint(geom) {
         geom.coordinates[0][0] +
             (geom.coordinates[1][0] - geom.coordinates[0][0]) / 2,
     ];
+}
+
+export function checkGpsPositionWithinBoundary() {
+    return new Promise((resolve) => {
+        const boundary = useStore.getState().boundary;
+
+        if (!boundary) {
+            return resolve(false);
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                const { latitude, longitude } = pos.coords;
+                const pt = point([longitude, latitude]);
+
+                const inside = booleanPointInPolygon(pt, boundary[0]);
+
+                if (inside) {
+                    resolve(pos);
+                } else {
+                    useStore.setState({ modal: "GPSOutsideBoundary" });
+                    resolve(false);
+                }
+            },
+            (err) => {
+                console.error("GPS Error:", err);
+                resolve(false);
+            },
+            { enableHighAccuracy: true },
+        );
+    });
 }

@@ -80,7 +80,7 @@ function MapClickSnapHandler({ setClickPos }) {
 
     useMapEvents({
         contextmenu(e) {
-            // right on deskto and pressed on mobile
+            // rightclick on desktop and pressed on mobile
             handleAction(e.latlng);
         },
     });

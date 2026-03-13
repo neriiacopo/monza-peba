@@ -1,101 +1,101 @@
 import { useState, useEffect, useRef } from "react";
 import { useMap, Polyline } from "react-leaflet";
-import { point, booleanPointInPolygon, distance } from "@turf/turf";
-
+import { point, distance } from "@turf/turf";
+import { checkGpsPositionWithinBoundary } from "@/lib/map.utils";
 import CustomIconMarker from "./CustomIconMarker";
-
 import { useStore } from "@/store/useStore";
 
-export default function GPSMarker({ type, color }) {
+export default function GPSMarker({ color }) {
     const map = useMap();
     const activeGps = useStore((s) => s.activeGps);
     const followGps = useStore((s) => s.followGps);
     const boundary = useStore((s) => s.boundary);
-    const [position, setPosition] = useState(null);
-
-    const [path, setPath] = useState([]);
     const updatePathGPS = useStore((s) => s.updatePathGPS);
-    const pathGPS = useStore((s) => s.pathGPS);
 
-    const lastStoredPointRef = useRef(null);
+    const [position, setPosition] = useState(null);
+    const [path, setPath] = useState([]);
+    const [isInside, setIsInside] = useState(false);
 
-    const checkInside = true;
+    const lastProcessedTime = useRef(0);
+    const lastCoords = useRef(null);
 
-    const monzaCentroid = [45.5846, 9.2733];
+    const TIME_THROTTLE = 3000; //ms
+    const DISTANCE_THROTTLE = 10; //meters
 
-    useEffect(() => {}, [path]);
+    const followGpsRef = useRef(followGps);
+    useEffect(() => {
+        followGpsRef.current = followGps;
+    }, [followGps]);
 
     useEffect(() => {
-        let watchId;
-
-        if (activeGps) {
-            if (navigator.geolocation) {
-                watchId = navigator.geolocation.watchPosition(
-                    (pos) => {
-                        const { latitude, longitude } = pos.coords;
-                        const current = [latitude, longitude];
-                        if (boundary) {
-                            const pt = point([longitude, latitude]); //inverted for turf
-
-                            const inside = booleanPointInPolygon(
-                                pt,
-                                boundary[0],
-                            );
-
-                            // 1. Boundary Check
-                            if (boundary) {
-                                const pt = point([longitude, latitude]);
-                                const inside = booleanPointInPolygon(
-                                    pt,
-                                    boundary[0],
-                                );
-                                if (checkInside && !inside) {
-                                    useStore.setState({
-                                        activeGps: false,
-                                        followGps: false,
-                                        modal: "GPSOutsideBoundary",
-                                    });
-                                    return;
-                                }
-                            }
-
-                            // 2. Immediate UI Update (High Res)
-                            setPosition(current);
-                            if (followGps) {
-                                setPath((prev) => [...prev, current]);
-                                map.setView(current, 18, { animate: true });
-                            }
-
-                            // 3. Conditional Store Update (Low Res - 5 Meters)
-                            const lastPoint = lastStoredPointRef.current;
-                            let isFarEnough = true;
-
-                            if (lastPoint) {
-                                const from = point([
-                                    lastPoint[1],
-                                    lastPoint[0],
-                                ]);
-                                if (
-                                    distance(from, pt, { units: "meters" }) < 5
-                                ) {
-                                    isFarEnough = false;
-                                }
-                            }
-
-                            if (isFarEnough) {
-                                lastStoredPointRef.current = current;
-                                updatePathGPS(current);
-                            }
-                        }
-                    },
-                    console.error,
-                    { enableHighAccuracy: true },
-                );
-            }
-
-            return () => navigator.geolocation.clearWatch(watchId);
+        if (activeGps && boundary && !isInside) {
+            checkGpsPositionWithinBoundary()
+                .then((pos) => {
+                    if (pos) {
+                        setIsInside(true);
+                    } else {
+                        useStore.setState({
+                            activeGps: false,
+                            followGps: false,
+                        });
+                    }
+                })
+                .catch((err) => {
+                    console.error("Effect GPS Error:", err);
+                    useStore.setState({ activeGps: false });
+                });
         }
-    }, [map, activeGps, followGps, boundary]);
+
+        if (!activeGps) {
+            setIsInside(false);
+            setPath([]);
+        }
+    }, [activeGps, boundary, isInside]);
+
+    useEffect(() => {
+        if (!activeGps || !isInside) return;
+
+        const watchId = navigator.geolocation.watchPosition(
+            (pos) => {
+                const { latitude, longitude } = pos.coords;
+                const now = Date.now();
+                const current = [latitude, longitude];
+
+                // Time throttle
+                if (now - lastProcessedTime.current < TIME_THROTTLE) return;
+
+                // Distance throttle
+                const currentTurfCoords = [longitude, latitude];
+                if (lastCoords.current) {
+                    const d = distance(
+                        point(lastCoords.current),
+                        point(currentTurfCoords),
+                        { units: "meters" },
+                    );
+                    if (d < DISTANCE_THROTTLE) return;
+                }
+
+                // Update refs
+                lastProcessedTime.current = now;
+                lastCoords.current = currentTurfCoords;
+
+                setPosition(current);
+                setPath((prev) => [...prev, current]);
+                updatePathGPS(current);
+
+                if (followGpsRef.current) {
+                    map.panTo(current);
+                }
+            },
+            console.error,
+            {
+                enableHighAccuracy: false,
+                maximumAge: 10000,
+            },
+        );
+
+        return () => navigator.geolocation.clearWatch(watchId);
+    }, [activeGps, isInside, map]);
 
     if (!position || !activeGps) return null;
 
@@ -103,19 +103,15 @@ export default function GPSMarker({ type, color }) {
         <>
             <CustomIconMarker
                 position={position}
-                type={"face"}
                 color={color}
-                size={"big"}
-                id={"GPS-marker"}
             />
             {path.length > 1 && (
                 <Polyline
                     positions={path}
                     pathOptions={{
                         color: color || "black",
-                        weight: 10,
-                        opacity: 1,
-                        // dashArray: "5, 10", // Optional: makes it a dashed line
+                        weight: 6,
+                        smoothFactor: 2.0,
                     }}
                 />
             )}

@@ -41,6 +41,7 @@ export let useStore = create((set, get) => ({
     setMarkers: (newMarker, idx = null) => {
         const prevMarkers = get().markers;
         const calcRoute = get().calcRoute;
+        const setModal = get().setModal;
 
         let newMarkers = [];
 
@@ -72,6 +73,14 @@ export let useStore = create((set, get) => ({
         }
 
         set({ markers: newMarkers, route: null, stats: {}, alerts: {} });
+
+        if (
+            newMarkers.length == 2 &&
+            newMarkers[0].address == newMarkers[1].address
+        ) {
+            setModal("sameOriginDestination");
+            return;
+        }
         calcRoute(newMarkers);
     },
 
@@ -209,10 +218,11 @@ export let useStore = create((set, get) => ({
         });
 
         set({
-            // activeGps: false,
+            activeGps: false,
             rotationMap: false,
             followGps: false,
             modal: "evaluateApp",
+            pathGPS: [],
         });
     },
 

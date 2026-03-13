@@ -60,6 +60,7 @@ export default function AlertModal({ theme }) {
                         "GPSOutsideBoundary",
                         "inaccessiblePath",
                         "reportSubmitted",
+                        "sameOriginDestination",
                     ].includes(modal) && (
                         <>
                             <Spacer height={1}>
@@ -81,6 +82,9 @@ export default function AlertModal({ theme }) {
                                 <InaccessiblePath />
                             )}
                             {modal == "reportSubmitted" && <ReportSubmitted />}
+                            {modal == "sameOriginDestination" && (
+                                <SameOriginDestination />
+                            )}
 
                             <Spacer height={1}>
                                 <MainButton
@@ -121,7 +125,7 @@ function GPSOutsideBoundary() {
             mb={3}
         >
             Posizione rilevata fuori dall'area consentita. Impossibile attivare
-            il tracciamento GPS
+            il GPS.
         </Typography>
     );
 }
@@ -137,6 +141,18 @@ function InaccessiblePath() {
             un punto critico, puoi usare questa app per segnalarlo, migliorare
             la mappa e informare l'amministrazione. Nel frattempo ti mostriamo
             il percorso più breve.
+        </Typography>
+    );
+}
+
+function SameOriginDestination() {
+    return (
+        <Typography
+            id="alert-modal-description"
+            mb={3}
+        >
+            Sembra che il punto di partenza e quello di arrivo coincidano. Per
+            favore, scegli due indirizzi diversi.
         </Typography>
     );
 }
