@@ -134,7 +134,7 @@ export default function AddressInputAuto({
                     disableClearable
                     disabled={followGps}
                     onFocus={() => setOpen(true)}
-                    // onBlur={() => setOpen(false)}
+                    onBlur={() => setOpen(false)}
                     onChange={(e, newValue) => {
                         if (!newValue) return;
 
