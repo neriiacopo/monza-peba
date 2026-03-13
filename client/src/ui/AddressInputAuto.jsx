@@ -134,7 +134,7 @@ export default function AddressInputAuto({
                     disableClearable
                     disabled={followGps}
                     onFocus={() => setOpen(true)}
-                    onBlur={() => setOpen(false)}
+                    // onBlur={() => setOpen(false)}
                     onChange={(e, newValue) => {
                         if (!newValue) return;
 
@@ -231,37 +231,51 @@ export default function AddressInputAuto({
 }
 
 function renderLabelIcons(props, option) {
+    const { key, ...otherProps } = props;
+
     return (
-        <Box
-            component="li"
-            {...props}
-            key={option.address + option.value}
-        >
-            <Stack
-                direction="column"
-                sx={{ width: "100%" }}
+        <div key={key}>
+            <Box
+                component="li"
+                {...otherProps}
+                sx={{
+                    width: "100%",
+                    display: "flex !important",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    px: 2,
+                    py: 1,
+                }}
             >
+                <Typography
+                    // variant="body2"
+                    sx={{ flexGrow: 1 }}
+                >
+                    {option.address}
+                </Typography>
+
                 <Stack
                     direction="row"
-                    alignItems="center"
                     spacing={1}
-                    sx={{
-                        justifyContent: "space-between",
-                    }}
+                    alignItems="center"
                 >
-                    <Typography>{option.address}</Typography>
-                    {option.isCurrentLocation && <GpsActivateIcon />}
-                    {option?.feature && option.feature?.wheelchair && (
+                    {option.isCurrentLocation && (
+                        <GpsActivateIcon color="primary" />
+                    )}
+                    {option?.feature?.wheelchair && (
                         <PickAccessibilityIcon
-                            accessibility={option.feature?.wheelchair}
+                            accessibility={option.feature.wheelchair}
                         />
                     )}
                 </Stack>
-                {option.isCurrentLocation && (
-                    <Divider sx={{ mt: 1, mb: -1, width: "100%" }} />
-                )}
-            </Stack>
-        </Box>
+            </Box>
+
+            {option.isCurrentLocation && (
+                <Divider
+                    sx={{ mx: 2, my: 0.5, borderColor: "rgba(0,0,0,0.1)" }}
+                />
+            )}
+        </div>
     );
 }
 
@@ -271,6 +285,7 @@ function inputLabelIcons(params, placeholder, value, inputRef) {
             direction="row"
             alignItems="center"
             spacing={1}
+            key={"value-" + params.id}
         >
             <TextField
                 inputRef={inputRef}
