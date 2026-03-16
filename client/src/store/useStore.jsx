@@ -166,7 +166,8 @@ export let useStore = create((set, get) => ({
 
     toggleGps: () => {
         const current = get().activeGps;
-        set({ activeGps: !current });
+        const currentF = get().followGps;
+        set({ activeGps: !current, followGps: !currentF });
     },
 
     downloadMap: () => {

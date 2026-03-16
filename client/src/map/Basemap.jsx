@@ -3,8 +3,6 @@ import { useTheme } from "@mui/material";
 import * as L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-import "leaflet-rotate";
-
 import {
     MapContainer,
     TileLayer,
@@ -30,7 +28,6 @@ export default function Basemap({
     report = false,
     expand,
     interactive = true,
-    currentHeading = 0,
 }) {
     const theme = useTheme();
     const mapRef = useRef();
@@ -38,8 +35,6 @@ export default function Basemap({
     const markers = useStore((s) => s.markers);
     const route = useStore((s) => s.route);
     const boundary = useStore((s) => s.boundary);
-    const { heading, isTracking, requestPermission } = useDeviceOrientation();
-    const followGps = useStore((s) => s.followGps);
 
     useEffect(() => {
         const map = mapRef.current;
@@ -77,11 +72,6 @@ export default function Basemap({
             ></div>
             <MapContainer
                 id="leaflet-map"
-                rotate={false}
-                touchRotate={false}
-                rotateControl={false}
-                bearing={0}
-                // --------------------------------
                 zoomSnap={0.1}
                 zoom={14}
                 center={monzaCentroid}
@@ -95,11 +85,6 @@ export default function Basemap({
                 }}
                 className={"map-container"}
             >
-                <RotationHandler
-                    heading={followGps ? heading : 0}
-                    isTracking={followGps}
-                />
-
                 <GeoJSON
                     name="boundary"
                     data={boundary}
@@ -150,15 +135,6 @@ export default function Basemap({
                 </LayerGroup>
                 <ResizeHandler trigger={expand} />
                 <GPSMarker color={mainColor} />
-
-                {/* {route && (
-                    <GPSMarkerDummy
-                        color={mainColor}
-                        route={route?.features[1]}
-                    />
-                )} */}
-
-                {/* <MarkerTest /> */}
             </MapContainer>
         </>
     );
@@ -174,18 +150,6 @@ function ResizeHandler({ trigger }) {
             zoomToAllLayer(map);
         }, 0);
     }, [trigger]);
-
-    return null;
-}
-
-function RotationHandler({ heading, isTracking }) {
-    const map = useMap();
-
-    useEffect(() => {
-        if (map && map.setBearing) {
-            map.setBearing(heading);
-        }
-    }, [map, heading, isTracking]);
 
     return null;
 }

@@ -15,12 +15,15 @@ export default function CustomIconMarker({
     id = null,
     children,
     onClick = null,
+    heading = null,
 }) {
+    const iconSize = size === "big" ? 48 : 36;
+    console.log(heading);
     const element = renderToString(
         <div
             style={{
-                width: size === "big" ? 48 : 36,
-                height: size === "big" ? 48 : 36,
+                width: iconSize,
+                height: iconSize,
                 borderRadius: "50%",
                 background: accessible ? lighten(color, 0.66) : "white",
                 display: "flex",
@@ -37,14 +40,30 @@ export default function CustomIconMarker({
                 color={color}
                 size={24}
             />
+            {heading && (
+                <div
+                    style={{
+                        position: "absolute",
+
+                        top: -4,
+                        left: -4,
+                        right: -4,
+                        bottom: -4,
+                        borderRadius: "50%",
+                        background: `conic-gradient(from ${heading - 45}deg, ${color} 0deg, ${color} 90deg, transparent 90deg)`,
+                        zIndex: -1,
+                        transition: "transform 0.2s ease-out",
+                    }}
+                ></div>
+            )}
         </div>,
     );
 
     const icon = L.divIcon({
         html: element,
         className: "alert-icon",
-        iconSize: [36, 36],
-        iconAnchor: [18, 18],
+        iconSize: size === "big" ? [48, 48] : [36, 36],
+        iconAnchor: size === "big" ? [24, 24] : [18, 18],
         zIndex: 1000,
     });
 

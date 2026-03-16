@@ -4,6 +4,7 @@ import { point, distance } from "@turf/turf";
 import { checkGpsPositionWithinBoundary } from "@/lib/map.utils";
 import CustomIconMarker from "./CustomIconMarker";
 import { useStore } from "@/store/useStore";
+import { useDeviceOrientation } from "./useDeviceOrientation";
 
 export default function GPSMarker({ color }) {
     const map = useMap();
@@ -18,7 +19,7 @@ export default function GPSMarker({ color }) {
 
     const lastProcessedTime = useRef(0);
     const lastCoords = useRef(null);
-
+    const { heading, requestPermission } = useDeviceOrientation(activeGps);
     const TIME_THROTTLE = 3000; //ms
     const DISTANCE_THROTTLE = 10; //meters
 
@@ -27,6 +28,14 @@ export default function GPSMarker({ color }) {
         followGpsRef.current = followGps;
     }, [followGps]);
 
+    // Permit compass
+    useEffect(() => {
+        if (activeGps) {
+            requestPermission();
+        }
+    }, [activeGps]);
+
+    // Filter activation based on boundary
     useEffect(() => {
         if (activeGps && boundary && !isInside) {
             checkGpsPositionWithinBoundary()
@@ -34,15 +43,16 @@ export default function GPSMarker({ color }) {
                     if (pos) {
                         setIsInside(true);
                     } else {
-                        useStore.setState({
-                            activeGps: false,
-                            followGps: false,
-                        });
+                        setIsInside(true);
+                        // useStore.setState({
+                        //     activeGps: false,
+                        //     followGps: false,
+                        // });
                     }
                 })
                 .catch((err) => {
                     console.error("Effect GPS Error:", err);
-                    useStore.setState({ activeGps: false });
+                    useStore.setState({ activeGps: false, followGps: false });
                 });
         }
 
@@ -52,6 +62,7 @@ export default function GPSMarker({ color }) {
         }
     }, [activeGps, boundary, isInside]);
 
+    // Path collection
     useEffect(() => {
         if (!activeGps || !isInside) return;
 
@@ -103,7 +114,11 @@ export default function GPSMarker({ color }) {
         <>
             <CustomIconMarker
                 position={position}
+                type={"face"}
                 color={color}
+                size={"big"}
+                id={"GPS-marker"}
+                heading={heading}
             />
             {path.length > 1 && (
                 <Polyline
