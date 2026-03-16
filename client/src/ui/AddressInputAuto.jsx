@@ -249,7 +249,13 @@ function renderLabelIcons(props, option) {
             >
                 <Typography
                     // variant="body2"
-                    sx={{ flexGrow: 1 }}
+                    sx={{
+                        flexGrow: 1,
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        marginRight: "8px",
+                    }}
                 >
                     {option.address}
                 </Typography>

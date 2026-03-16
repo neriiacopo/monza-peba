@@ -23,6 +23,7 @@ export default function MapArea({
 }) {
     const toggleGps = useStore((s) => s.toggleGps);
     const activeGps = useStore((s) => s.activeGps);
+    const followGps = useStore((s) => s.followGps);
 
     return (
         <>
@@ -60,6 +61,7 @@ export default function MapArea({
                         pointerEvents: "auto",
                     }}
                     onClick={() => toggleGps()}
+                    disabled={followGps}
                 >
                     {activeGps ? <GpsDisableIcon /> : <GpsActivateIcon />}
                 </IconButton>

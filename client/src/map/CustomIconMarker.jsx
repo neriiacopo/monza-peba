@@ -18,7 +18,6 @@ export default function CustomIconMarker({
     heading = null,
 }) {
     const iconSize = size === "big" ? 48 : 36;
-    console.log(heading);
     const element = renderToString(
         <div
             style={{

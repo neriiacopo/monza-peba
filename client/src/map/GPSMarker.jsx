@@ -26,6 +26,7 @@ export default function GPSMarker({ color }) {
     const followGpsRef = useRef(followGps);
     useEffect(() => {
         followGpsRef.current = followGps;
+        setPath([]);
     }, [followGps]);
 
     // Permit compass
@@ -43,11 +44,10 @@ export default function GPSMarker({ color }) {
                     if (pos) {
                         setIsInside(true);
                     } else {
-                        setIsInside(true);
-                        // useStore.setState({
-                        //     activeGps: false,
-                        //     followGps: false,
-                        // });
+                        useStore.setState({
+                            activeGps: false,
+                            followGps: false,
+                        });
                     }
                 })
                 .catch((err) => {
@@ -71,12 +71,21 @@ export default function GPSMarker({ color }) {
                 const { latitude, longitude } = pos.coords;
                 const now = Date.now();
                 const current = [latitude, longitude];
+                const currentTurfCoords = [longitude, latitude];
+
+                // Set first immediately
+                if (!lastCoords.current) {
+                    setPosition(current);
+                    lastCoords.current = currentTurfCoords;
+                    lastProcessedTime.current = now;
+                    if (followGps) map.panTo(current);
+                    return;
+                }
 
                 // Time throttle
                 if (now - lastProcessedTime.current < TIME_THROTTLE) return;
 
                 // Distance throttle
-                const currentTurfCoords = [longitude, latitude];
                 if (lastCoords.current) {
                     const d = distance(
                         point(lastCoords.current),
@@ -91,10 +100,10 @@ export default function GPSMarker({ color }) {
                 lastCoords.current = currentTurfCoords;
 
                 setPosition(current);
-                setPath((prev) => [...prev, current]);
-                updatePathGPS(current);
 
                 if (followGpsRef.current) {
+                    setPath((prev) => [...prev, current]);
+                    updatePathGPS(current);
                     map.panTo(current);
                 }
             },
