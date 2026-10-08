@@ -102,8 +102,8 @@ export default function Basemap({
                 <TileLayer
                     zIndex={0}
                     id="tiles"
-                    url="https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"
-                    attribution='&copy; <a href="https://carto.com/">CARTO</a>'
+                    url="https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png?key=cb1_4ee7_1_2f8cde3036905fe3a36782e0"
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="https://carto.com/attributions">CARTO</a>'
                     crossOrigin
                 />
 
